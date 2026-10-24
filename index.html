@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CDIFFUSION Aveyron</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout concept: rail de navigation à gauche (bas d'écran sur mobile), contenu en bandes. Ardoise verte, vert prairie, safran en signal. */
+:root{
+  --bg:#EEF2EE; --surface:#FFFFFF; --surface-2:#E5ECE6; --ink:#12201A; --ink-2:#47574E; --ink-3:#6C7C72;
+  --line:#D3DCD5; --accent:#0E7A51; --accent-ink:#FFFFFF; --accent-soft:#D7EEE2;
+  --sun:#9A6A00; --sun-solid:#E3A500; --sun-ink:#1B1400; --sun-soft:#FBEFCB;
+  --info:#255F9E; --info-soft:#DCE8F6; --crit:#B0352A; --crit-soft:#F7DDD9;
+  --shadow:0 1px 2px rgba(18,32,26,.06),0 8px 24px -12px rgba(18,32,26,.18);
+  --hero:#0C3F2B; --hero-ink:#EAF5EE; --hero-dim:#A9C7B6; --gold:#F2C14E;
+  --display:'Bricolage Grotesque','Instrument Sans',system-ui,sans-serif;
+  --sans:'Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B120E; --surface:#131D17; --surface-2:#1A2820; --ink:#E6EFE8; --ink-2:#A2B4A8; --ink-3:#74887B;
+  --line:#26372D; --accent:#3FD08F; --accent-ink:#06150D; --accent-soft:#143325;
+  --sun:#F0B93A; --sun-solid:#E9B124; --sun-ink:#1B1400; --sun-soft:#33280C;
+  --info:#7DB2EE; --info-soft:#13273D; --crit:#F08678; --crit-soft:#3A1914;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B120E; --surface:#131D17; --surface-2:#1A2820; --ink:#E6EFE8; --ink-2:#A2B4A8; --ink-3:#74887B;
+  --line:#26372D; --accent:#3FD08F; --accent-ink:#06150D; --accent-soft:#143325;
+  --sun:#F0B93A; --sun-solid:#E9B124; --sun-ink:#1B1400; --sun-soft:#33280C;
+  --info:#7DB2EE; --info-soft:#13273D; --crit:#F08678; --crit-soft:#3A1914;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.6); color-scheme:dark}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);padding-block:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:60}
+h1,h2,h3,h4{font-family:var(--display);margin:0;line-height:1.15;text-wrap:balance;letter-spacing:-.01em}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.i.sm{width:15px;height:15px}.i.lg{width:22px;height:22px}
+.num{font-variant-numeric:tabular-nums}
+.mono{font-family:var(--mono);font-size:.86em}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.eyebrow{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.muted{color:var(--ink-2)}.faint{color:var(--ink-3)}
+
+.shell{max-width:1360px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr)}
+.side{display:none}
+.main{min-width:0;padding-bottom:104px}
+@media(min-width:960px){
+  .shell{grid-template-columns:232px minmax(0,1fr);column-gap:32px}
+  .side{display:flex;flex-direction:column;gap:20px;position:sticky;top:0;height:100vh;padding-block:22px}
+  .main{padding-bottom:56px}
+}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:38px;height:38px;border-radius:11px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:700 16px var(--display);letter-spacing:-.02em;position:relative}
+.logo::after{content:"";position:absolute;right:-3px;bottom:-3px;width:11px;height:11px;border-radius:50%;background:var(--sun-solid);border:2px solid var(--bg)}
+.brand b{font:700 17px var(--display);letter-spacing:-.01em;display:block}
+.brand small{font-size:11.5px;color:var(--ink-3);display:block;line-height:1.25}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:11px;padding:9px 12px;border:0;background:none;border-radius:9px;color:var(--ink-2);font-weight:550;text-align:left}
+.nav button:hover{background:var(--surface-2);color:var(--ink)}
+.nav button[aria-current="page"]{background:var(--ink);color:var(--bg)}
+.nav button[aria-current="page"] .i{color:var(--accent)}
+.side .foot{margin-top:auto;font-size:12px;color:var(--ink-3);display:grid;gap:8px}
+.demo-pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--sun);background:var(--sun-soft);border-radius:99px;padding:3px 10px;width:max-content}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:14px}
+.top .brand{display:flex}
+@media(min-width:960px){.top .brand{display:none}.top{padding-block:22px 14px}}
+.top h1{font-size:clamp(21px,2.6vw,30px);font-weight:700}
+.top .ttl{min-width:0;display:flex;flex-direction:column;gap:2px}
+.top .ttl .eyebrow{display:none}
+@media(min-width:960px){.top .ttl .eyebrow{display:block}}
+@media(max-width:959px){.top .ttl h1{display:none}}
+.tools{display:flex;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 13px;border-radius:10px;font-weight:600;font-size:13.5px;line-height:1.2;min-height:38px;transition:background .15s,border-color .15s,transform .1s}
+.btn:hover{border-color:var(--ink-3)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.ghost{background:transparent}
+.btn.sm{min-height:32px;padding:5px 10px;font-size:12.5px;border-radius:8px}
+.btn.icon{padding:0;width:38px}
+.btn[aria-disabled="true"]{opacity:.55}
+.btn kbd{font:500 11px var(--mono);background:var(--surface-2);border-radius:5px;padding:1px 6px;color:var(--ink-2)}
+.hide-sm{display:none}@media(min-width:720px){.hide-sm{display:inline}}
+
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(6,minmax(0,1fr));
+  padding:6px max(6px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px))}
+.tabbar button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font-size:10.5px;font-weight:600;color:var(--ink-3);border-radius:9px}
+.tabbar button[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
+@media(min-width:960px){.tabbar{display:none}}
+.minibar{position:fixed;left:0;right:0;z-index:39;bottom:calc(58px + env(safe-area-inset-bottom,0px));padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px));display:none}
+.minibar.on{display:block}
+@media(min-width:960px){.minibar.on{display:none}}
+.minibar div{background:var(--ink);color:var(--bg);border-radius:12px;padding:9px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;box-shadow:var(--shadow)}
+.minibar b{font:700 17px var(--display)}
+.minibar button{border:0;background:var(--accent);color:var(--accent-ink);font-weight:650;border-radius:8px;padding:6px 12px;font-size:12.5px}
+
+/* panels */
+.view{display:grid;gap:22px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0}
+.panel.flat{background:transparent;border-style:dashed}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.ph h2,.ph h3{font-size:17px;font-weight:650}
+.ph p{font-size:13px;color:var(--ink-3);margin-top:2px}
+.grid2{display:grid;gap:22px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:1040px){.grid2{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}.grid2.even{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.pulse{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px transparent}100%{box-shadow:0 0 0 0 transparent}}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:99px;font-size:11.5px;font-weight:650;white-space:nowrap}
+.b-ok{background:var(--accent-soft);color:var(--accent)}.b-info{background:var(--info-soft);color:var(--info)}
+.b-warn{background:var(--sun-soft);color:var(--sun)}.b-mute{background:var(--surface-2);color:var(--ink-2)}.b-crit{background:var(--crit-soft);color:var(--crit)}
+.bar{height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+
+/* overview */
+.hero{position:relative;overflow:hidden;border-radius:18px;background:var(--hero);color:var(--hero-ink);padding:clamp(22px,4vw,42px);display:grid;gap:24px;align-items:center;
+  background-image:repeating-radial-gradient(ellipse 60% 80% at 90% 14%,transparent 0 26px,rgba(234,245,238,.07) 26px 27px),repeating-radial-gradient(ellipse 50% 60% at 4% 110%,transparent 0 30px,rgba(234,245,238,.05) 30px 31px)}
+@media(min-width:900px){.hero{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
+.hero h2{font-size:clamp(28px,4.2vw,46px);font-weight:750;max-width:18ch;line-height:1.04;color:var(--hero-ink)}
+.hero h2 em{font-style:normal;color:var(--gold)}
+.hero .sub{max-width:50ch;color:var(--hero-dim);margin-top:14px}
+.hero .live{display:inline-flex;align-items:center;gap:9px;font-size:12.5px;font-weight:600;color:var(--hero-ink);background:rgba(234,245,238,.12);padding:4px 12px;border-radius:99px;margin-bottom:16px}
+.hero .pulse{background:var(--gold);box-shadow:0 0 0 0 var(--gold)}
+.hero .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.btn.sun{background:var(--gold);border-color:var(--gold);color:#1B1400}
+.btn.onhero{background:transparent;border-color:rgba(234,245,238,.4);color:var(--hero-ink)}
+.btn.onhero:hover{border-color:var(--hero-ink)}
+.hm{width:100%;max-width:400px;justify-self:center;min-width:0}
+.hm svg{display:block;width:100%;height:auto}
+.hm text{font:600 20px var(--sans);fill:var(--hero-ink);paint-order:stroke;stroke:var(--hero);stroke-width:5px;stroke-linejoin:round}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));border:1px solid var(--line);border-radius:14px;background:var(--surface);overflow:hidden}
+@media(min-width:900px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kpi{padding:16px 18px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0}
+.kpi:nth-child(2n){border-right:0}
+@media(min-width:900px){.kpi{border-bottom:0}.kpi:nth-child(2n){border-right:1px solid var(--line)}.kpi:last-child{border-right:0}}
+.kpi:nth-last-child(-n+2){border-bottom:0}
+.kpi .l{font-size:12px;color:var(--ink-3);font-weight:600;display:flex;gap:6px;align-items:center}
+.kpi .v{font:700 clamp(24px,3vw,34px) var(--display);margin-top:6px;letter-spacing:-.02em}
+.kpi .v small{font:500 12.5px var(--sans);color:var(--ink-3);letter-spacing:0;margin-left:5px}
+.kpi .t{font-size:12px;color:var(--accent);font-weight:600;margin-top:2px}
+.mission{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 14px;padding:13px 0;border-top:1px solid var(--line);align-items:center}
+.mission:first-of-type{border-top:0;padding-top:0}
+.mission b{font-weight:650}.mission .s{font-size:12.5px;color:var(--ink-3)}
+.mission .r{text-align:right;display:grid;gap:6px;justify-items:end;width:110px}
+.mission .bar{width:100%}
+.chart{width:100%;height:auto;display:block}
+.chart text{fill:var(--ink-3);font:500 11.5px var(--mono)}
+.chart .gl{stroke:var(--line);stroke-width:1}
+.chart .bar-r{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1}
+.chart .bar-r.last{fill:var(--accent)}
+.chart text.val{fill:var(--ink);font-weight:500}
+.evrow{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.evrow:first-child{border-top:0;padding-top:0}
+.date-chip{width:46px;flex:none;text-align:center;border:1px solid var(--line);border-radius:10px;padding:4px 0;line-height:1.1}
+.date-chip b{display:block;font:700 18px var(--display)}.date-chip span{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3)}
+
+/* devis */
+.devis{display:grid;gap:22px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:1040px){.devis{grid-template-columns:minmax(0,5fr) minmax(0,6fr);align-items:start}.devis .sticky{position:sticky;top:96px}}
+fieldset{border:0;margin:0;padding:0;min-width:0}
+legend{padding:0;font-size:12px;font-weight:650;color:var(--ink-3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:9px}
+.form{display:grid;gap:22px}
+.chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.chip{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--line);background:var(--surface);border-radius:11px;text-align:left;min-width:0}
+.chip b{display:block;font-weight:650;font-size:13.5px}.chip small{color:var(--ink-3);font-size:11.5px}
+.chip[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.chip[aria-pressed="true"] b{color:var(--accent)}
+.chip .i{color:var(--accent);opacity:0}.chip[aria-pressed="true"] .i{opacity:1}
+.qty{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+input[type=range]{width:100%;accent-color:var(--accent);height:28px}
+.field{display:grid;gap:5px}
+.field label,.field .lab{font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.in{width:100%;padding:9px 12px;border:1px solid var(--line);background:var(--surface);border-radius:10px;min-height:38px}
+.in:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+.opts{display:grid;gap:8px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.opts.one{grid-template-columns:minmax(0,1fr)}
+.opt{position:relative;display:block}
+.opt input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.opt span{display:block;padding:9px 12px;border:1px solid var(--line);border-radius:11px;background:var(--surface);min-height:100%}
+.opt b{display:block;font-size:13.5px;font-weight:650}.opt small{color:var(--ink-3);font-size:11.5px}
+.opt input:checked+span{border-color:var(--accent);background:var(--accent-soft)}
+.opt input:checked+span b{color:var(--accent)}
+.opt input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.presets{display:flex;gap:6px;flex-wrap:wrap}
+.mapbox{position:relative;border-radius:12px;background:var(--surface-2);overflow:hidden}
+.mapbox svg{display:block;width:100%;height:auto}
+.mp-out{fill:var(--surface);stroke:var(--line);stroke-width:1.5}
+.mp-grid{stroke:var(--line);stroke-width:.6;stroke-dasharray:2 5;opacity:.7}
+.mp-river{fill:none;stroke:var(--info);stroke-width:1.4;opacity:.35}
+.mp-route{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:5 6;animation:dash 1.4s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-22}}
+.mp-halo{fill:var(--accent);opacity:.12}
+.mp-node circle.c{fill:var(--surface);stroke:var(--ink-3);stroke-width:1.5;transition:fill .2s,stroke .2s}
+.mp-node.on circle.c{fill:var(--accent);stroke:var(--accent)}
+.mp-node text{font:600 12px var(--sans);fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:3.5px;stroke-linejoin:round}
+.mp-node.off text{fill:var(--ink-3)}
+.mp-node{cursor:pointer}
+.mp-node:focus-visible{outline:none}.mp-node:focus-visible circle.c{stroke:var(--sun-solid);stroke-width:3}
+.mp-base rect{fill:var(--ink)}.mp-base text{font:500 13px var(--mono);fill:var(--ink-2);paint-order:stroke;stroke:var(--surface-2);stroke-width:3px}
+.total{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.total .big{font:750 clamp(34px,5vw,48px) var(--display);letter-spacing:-.03em;line-height:1}
+.total .big small{font:500 14px var(--sans);color:var(--ink-3);letter-spacing:0;margin-left:6px}
+table{border-collapse:collapse;width:100%}
+.lines td{padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}
+.lines td:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lines tr.sum td{font-weight:700}
+.lines td small{color:var(--ink-3)}
+.lines .neg td:last-child{color:var(--accent)}
+.stats3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-block:14px}
+.st{border:1px solid var(--line);border-radius:11px;padding:10px 12px;min-width:0}
+.st .l{font-size:11.5px;color:var(--ink-3);font-weight:600}.st .v{font:700 20px var(--display);margin-top:2px}
+.st .v small{font:500 11.5px var(--sans);color:var(--ink-3);margin-left:3px}
+.scroll-x{overflow-x:auto}
+.alloc td,.alloc th{padding:6px 8px 6px 0;font-size:13px;border-top:1px solid var(--line);text-align:left}
+.alloc th{font-size:11.5px;color:var(--ink-3);font-weight:600;border-top:0}
+.alloc td:last-child,.alloc th:last-child{text-align:right;padding-right:0}
+details{border:1px solid var(--line);border-radius:11px;padding:10px 14px}
+summary{cursor:pointer;font-weight:600;font-size:13.5px}
+details p,details li{font-size:13px;color:var(--ink-2)}details ul{margin:8px 0 0;padding-left:18px;display:grid;gap:3px}
+
+/* tournée */
+.tour-sel{display:flex;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.seg button{border:0;background:none;padding:7px 12px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.gps{display:grid;gap:22px}
+@media(min-width:1040px){.gps{grid-template-columns:minmax(0,2fr) minmax(0,1fr);align-items:start}}
+.gmap{position:relative;border-radius:12px;overflow:hidden;background:var(--surface-2);border:1px solid var(--line)}
+.gmap svg{display:block;width:100%;height:auto}
+.g-st{stroke:var(--line);stroke-width:7;fill:none;stroke-linecap:round}
+.g-st.s2{stroke-width:4}
+.g-blk{fill:var(--surface);opacity:.55}
+.g-river{fill:none;stroke:var(--info);stroke-width:10;opacity:.22;stroke-linecap:round}
+.g-todo{fill:none;stroke:var(--ink-3);stroke-width:2.5;stroke-dasharray:6 7;opacity:.8}
+.g-done{fill:none;stroke:var(--accent);stroke-width:4;stroke-linecap:round}
+.g-park{fill:var(--accent-soft);opacity:.75}
+.g-stop circle{fill:var(--surface);stroke:var(--ink-3);stroke-width:2}
+.g-stop.ok circle{fill:var(--accent);stroke:var(--accent)}
+.g-stop text{font:700 11px var(--mono);fill:var(--ink-2);text-anchor:middle}
+.g-stop.ok text{fill:var(--accent-ink)}
+.stops{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px;margin-top:14px}
+.sc{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:13px;min-width:0;transition:background .2s,border-color .2s}
+.sc .sn{width:22px;height:22px;border-radius:50%;background:var(--surface-2);color:var(--ink-2);display:grid;place-items:center;font:700 11px var(--mono);flex:none}
+.sc .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sc .tm{color:var(--ink-3);font:500 11.5px var(--mono)}
+.sc.ok{border-color:var(--accent);background:var(--accent-soft)}
+.sc.ok .sn{background:var(--accent);color:var(--accent-ink)}
+.g-me circle.o{fill:var(--sun-solid);opacity:.3}
+.g-me circle.i2{fill:var(--ink);stroke:var(--sun-solid);stroke-width:3}
+.g-me text{font:700 11px var(--sans);fill:var(--ink)}
+.g-me rect{fill:var(--sun-solid)}
+.gover{position:absolute;left:10px;right:10px;bottom:10px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;pointer-events:none}
+.gover span{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:4px 9px;font:500 11.5px var(--mono);color:var(--ink-2)}
+.ctl{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tele{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.proof{display:flex;gap:11px;align-items:center;padding:10px 0;border-top:1px solid var(--line);animation:in .4s}
+.proof:first-child{border-top:0}
+@keyframes in{from{opacity:0;transform:translateY(-6px)}}
+.ph-ico{width:42px;height:42px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.empty{color:var(--ink-3);font-size:13px;padding:14px;border:1px dashed var(--line);border-radius:10px;text-align:center}
+
+/* BAT */
+.bat{display:grid;gap:22px}
+@media(min-width:1040px){.bat{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:start}}
+.stage{border-radius:12px;background:var(--surface-2);border:1px solid var(--line);padding:26px 16px;display:grid;place-items:center;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:24px 24px;background-position:-1px -1px}
+.flyer-w{position:relative;width:min(100%,300px)}
+.flyer{width:100%;aspect-ratio:148/210;background:#FBFCFA;color:#12201A;border-radius:3px;box-shadow:0 18px 40px -16px rgba(0,0,0,.45),0 0 0 1px rgba(0,0,0,.08);overflow:hidden;position:relative;display:flex;flex-direction:column;cursor:crosshair;user-select:none;-webkit-user-select:none}
+.flyer.ro{cursor:default}
+.f-head{background:#0E7A51;color:#fff;padding:14px 14px 12px;display:flex;align-items:center;gap:9px}
+.f-logo{width:30px;height:30px;border-radius:50%;background:#fff;color:#0E7A51;display:grid;place-items:center;font:800 12px 'Bricolage Grotesque',sans-serif}
+.f-brand{font:700 11px 'Bricolage Grotesque',sans-serif;letter-spacing:.04em}
+.f-body{padding:16px 14px 8px;flex:1;display:flex;flex-direction:column;gap:8px}
+.f-title{font:800 27px/.95 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em;color:#0C3F2B}
+.f-sub{font:600 9.5px 'Instrument Sans',sans-serif;color:#44564C;letter-spacing:.04em;text-transform:uppercase}
+.f-art{flex:1;min-height:0;margin-top:2px}
+.f-art svg{width:100%;height:100%;display:block}
+.f-tag{background:#D7EEE2;color:#0A5C3D;border-radius:5px;font:700 9.5px 'Instrument Sans',sans-serif;padding:6px 8px;text-align:center}
+.f-foot{border-top:1px solid #DDE5DF;margin:0 14px;padding:7px 0 10px;font:500 7.5px/1.35 'Instrument Sans',sans-serif;color:#5B6C62;text-align:center;min-height:30px}
+.pin{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;border:2px solid #fff;background:var(--sun-solid);color:var(--sun-ink);font:700 12px var(--mono);display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.35);padding:0;z-index:2}
+.pin.done{background:var(--accent);color:var(--accent-ink)}
+.pin.sel{outline:3px solid var(--info);outline-offset:2px}
+.pin:hover{transform:translate(-50%,-50%) scale(1.12)}
+.vers{display:inline-flex;gap:3px;background:var(--surface-2);padding:3px;border-radius:11px}
+.vers button{border:0;background:none;border-radius:8px;padding:5px 11px;font:500 12.5px var(--mono);color:var(--ink-2)}
+.vers button[aria-pressed="true"]{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.cm{border:1px solid var(--line);border-radius:11px;padding:11px 12px;display:grid;gap:7px;background:var(--surface)}
+.cm.sel{border-color:var(--info);background:var(--info-soft)}
+.cm .h{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.cm .n{width:22px;height:22px;border-radius:50%;background:var(--sun-solid);color:var(--sun-ink);display:grid;place-items:center;font:700 11px var(--mono);flex:none}
+.cm.done .n{background:var(--accent);color:var(--accent-ink)}
+.cm p{font-size:13.5px;overflow-wrap:anywhere}
+.cm .act{display:flex;gap:6px;flex-wrap:wrap}
+.stamp{border:2px solid var(--accent);color:var(--accent);border-radius:12px;padding:12px 14px;display:flex;gap:11px;align-items:center;transform:rotate(-1.2deg);background:var(--accent-soft)}
+.list{display:grid;gap:9px;max-height:380px;overflow:auto;padding-right:2px}
+
+/* planning */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal .dow{font-size:11px;font-weight:650;color:var(--ink-3);text-align:center;padding-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.day{min-height:58px;border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:4px;text-align:left;display:flex;flex-direction:column;gap:3px;min-width:0;overflow:hidden}
+@media(min-width:720px){.day{min-height:92px;padding:6px}}
+.day.o{background:transparent;border-color:transparent;pointer-events:none}
+.day .dn{font:500 12px var(--mono);color:var(--ink-2)}
+.day.today .dn{background:var(--ink);color:var(--bg);border-radius:6px;padding:0 5px;width:max-content}
+.day.pick{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.ev{display:flex;gap:5px;align-items:flex-start;font-size:10.5px;line-height:1.22;font-weight:600;border-radius:6px;padding:3px 6px;min-width:0}
+.ev i{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none;margin-top:4px}
+.ev span{display:none;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+@media(min-width:720px){.ev span{display:-webkit-box}}
+.legend{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.legend .ev{align-items:center;padding:3px 9px;font-size:12px}
+.legend .ev i{margin-top:0}
+.day.we{background:color-mix(in srgb,var(--surface-2) 55%,var(--surface))}
+.ev.s-Confirmé{background:var(--accent-soft);color:var(--accent)}.ev.s-Planifié{background:var(--info-soft);color:var(--info)}.ev.s-Brouillon{background:var(--surface-2);color:var(--ink-2)}
+.mnav{display:flex;align-items:center;gap:8px}
+.mnav b{font:650 16px var(--display);min-width:130px;text-align:center;text-transform:capitalize}
+.erow{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:11px 0;border-top:1px solid var(--line)}
+.erow:first-child{border-top:0}
+.erow .t{font-weight:650;overflow-wrap:anywhere}.erow .m{font-size:12.5px;color:var(--ink-3)}
+.fgrid{display:grid;gap:12px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.fgrid .w{grid-column:1/-1}
+
+/* RSE */
+.rse{display:grid;gap:22px}
+@media(min-width:1040px){.rse{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:start}}
+.cert{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:clamp(30px,5vw,56px);overflow:hidden;text-align:center;display:grid;gap:22px;justify-items:center;box-shadow:inset 0 0 0 9px var(--surface),inset 0 0 0 10px var(--accent),var(--shadow)}
+.cert::before{content:"EXEMPLE";position:absolute;inset:0;display:grid;place-items:center;font:800 clamp(48px,11vw,96px) var(--display);letter-spacing:.06em;color:var(--ink);opacity:.045;transform:rotate(-18deg);pointer-events:none}
+.sig{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:14px;width:100%;text-align:left;border-top:1px solid var(--line);padding-top:16px;font-size:13px}
+.sig .l{font-size:11.5px;color:var(--ink-3);font-weight:600;margin-bottom:3px}
+.sig .box{border:1px dashed var(--ink-3);border-radius:8px;min-height:64px;padding:8px 10px}
+@media(max-width:560px){.sig{grid-template-columns:1fr 1fr}.sig .box{grid-column:1/-1}}
+.cert h2{font-size:clamp(24px,3.4vw,34px);font-weight:750}
+.seal{width:76px;height:76px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;border:2px solid var(--accent)}
+.seal .i{width:34px;height:34px}
+.cgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;width:100%;text-align:left}
+.cgrid div{background:var(--surface);padding:12px 14px;min-width:0}
+.cgrid .l{font-size:11.5px;color:var(--ink-3);font-weight:600}.cgrid .v{font:700 20px var(--display);margin-top:2px;overflow-wrap:anywhere}
+.cgrid .v.ac{color:var(--accent)}
+
+/* overlays */
+.ov{position:fixed;inset:0;z-index:80;background:rgba(6,12,9,.55);display:flex;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.ov[hidden]{display:none}
+.ov.pal{align-items:flex-start;justify-content:center;padding-top:calc(10vh + env(safe-area-inset-top,0px))}
+.ov.ai{align-items:flex-end;justify-content:center}
+@media(min-width:720px){.ov.ai{justify-content:flex-end;align-items:stretch}}
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);width:100%;display:flex;flex-direction:column;overflow:hidden;min-height:0}
+.pal .sheet{max-width:560px;max-height:70vh}
+.ai .sheet{max-width:480px;max-height:min(720px,88vh)}
+@media(min-width:720px){.ai .sheet{max-height:none}}
+.sh-h{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.sh-h h3{font-size:15px;display:flex;gap:8px;align-items:center}
+.pal input{border:0;background:none;outline:0;width:100%;padding:14px 16px;border-bottom:1px solid var(--line);font-size:15px}
+.pal ul{list-style:none;margin:0;padding:6px;overflow:auto;display:grid;gap:2px}
+.pal li button{width:100%;border:0;background:none;display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:9px;text-align:left}
+.pal li button[aria-selected="true"]{background:var(--surface-2)}
+.pal li small{margin-left:auto;color:var(--ink-3);font-size:11.5px}
+.chat{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:12px;min-height:160px}
+.msg{max-width:92%;padding:10px 13px;border-radius:13px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.msg.u{align-self:flex-end;background:var(--ink);color:var(--bg);border-bottom-right-radius:4px}
+.msg.a{align-self:flex-start;background:var(--surface-2);border-bottom-left-radius:4px}
+.msg.e{align-self:stretch;background:var(--crit-soft);color:var(--crit);font-size:13px}
+.sugs{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 10px}
+.sugs button{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 11px;font-size:12.5px;color:var(--ink-2)}
+.sugs button:hover{border-color:var(--accent);color:var(--accent)}
+.ai form{display:flex;gap:8px;padding:12px 16px 14px;border-top:1px solid var(--line);align-items:flex-end}
+.ai textarea{flex:1;resize:none;min-height:40px;max-height:120px}
+.toast{position:fixed;left:50%;transform:translateX(-50%) translateY(20px);bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:90;background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%)}
+@media(min-width:960px){.toast{bottom:28px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head><body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 10-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+<symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="17" r="2"/><circle cx="18" cy="7" r="2"/><path d="M8 17h5.5a3 3 0 000-6h-3a3 3 0 010-6H16"/></symbol>
+<symbol id="i-proof" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5zM14 3v5h5M9 14l2 2 4-4"/></symbol>
+<symbol id="i-calendar" viewBox="0 0 24 24"><path d="M4 6h16v14H4zM4 10h16M8 3v4M16 3v4"/></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3zM9 12l2 2 4-4"/></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+<symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8L12 3zM19 17l.8 2.2L22 20l-2.2.8L19 23l-.8-2.2L16 20l2.2-.8z"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 019.5 4 8 8 0 1020 14.5z"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 4v16M16 4v16"/></symbol>
+<symbol id="i-reset" viewBox="0 0 24 24"><path d="M3 12a9 9 0 109-9 9 9 0 00-6.4 2.7L3 8M3 3v5h5"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12M7 11l5 5 5-5M4 21h16"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="i-leaf" viewBox="0 0 24 24"><path d="M5 19C5 9 11 4 20 4c0 9-5 15-15 15zM5 19l8-8"/></symbol>
+<symbol id="i-bike" viewBox="0 0 24 24"><circle cx="6" cy="15.5" r="3.5"/><circle cx="18" cy="15.5" r="3.5"/><path d="M6 15.5l3-7h5l4 7M9 8.5L7.5 6H5M14 8.5l-1.5 7"/></symbol>
+<symbol id="i-battery" viewBox="0 0 24 24"><path d="M3 8h15v8H3zM21 11v2M6 10.5v3M9 10.5v3"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M21 3L10 14M21 3l-7 18-4-7-7-4z"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><path d="M9 9h11v11H9zM5 15V4h11"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5zM14 3v5h5"/></symbol>
+<symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+<symbol id="i-chevl" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+<symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13.5" r="3.5"/></symbol>
+<symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 18a9 9 0 1116 0M12 18l4-6"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"/></symbol>
+</defs></svg>
+
+<div class="shell">
+  <aside class="side" aria-label="Navigation principale">
+    <div class="brand"><div class="logo">CD</div><div><b>CDIFFUSION</b><small>Impression et cyclo-logistique<br>Aveyron</small></div></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="foot">
+      <span class="demo-pill"><svg class="i sm"><use href="#i-eye"/></svg>Données de démonstration</span>
+      <span>Les chiffres, tournées et tarifs sont des exemples à remplacer par vos données.</span>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <div class="brand"><div class="logo">CD</div><div><b>CDIFFUSION</b><small>Aveyron</small></div></div>
+      <div class="ttl"><span class="eyebrow" id="eyebrow">Campagne 2026-B</span><h1 id="title">Aperçu</h1></div>
+      <div class="tools">
+        <button class="btn" id="btnCmd" type="button" aria-label="Ouvrir la recherche d’actions"><svg class="i"><use href="#i-search"/></svg><span class="hide-sm">Actions</span><kbd class="hide-sm" id="kbd">Ctrl K</kbd></button>
+        <button class="btn primary" id="btnAi" type="button" hidden><svg class="i"><use href="#i-spark"/></svg><span class="hide-sm">Conseil IA</span></button>
+        <button class="btn icon" id="btnTheme" type="button" aria-label="Changer de thème"></button>
+      </div>
+    </header>
+    <main id="view" class="view" tabindex="-1"></main>
+  </div>
+</div>
+
+<div class="minibar" id="minibar"><div><span><span class="faint" style="color:inherit;opacity:.7;font-size:12px">Total HT</span><br><b class="num" id="miniTotal">0 €</b></span><button type="button" id="miniGo">Voir le devis</button></div></div>
+<nav class="tabbar" id="tabbar" aria-label="Navigation mobile"></nav>
+
+<div class="ov pal" id="pal" hidden role="dialog" aria-modal="true" aria-label="Rechercher une action">
+  <div class="sheet"><input id="palIn" type="text" placeholder="Que voulez-vous faire ?" autocomplete="off" aria-label="Rechercher une action"><ul id="palList" role="listbox"></ul></div>
+</div>
+<div class="ov ai" id="ai" hidden role="dialog" aria-modal="true" aria-labelledby="aiTitle">
+  <div class="sheet">
+    <div class="sh-h"><h3 id="aiTitle"><svg class="i" style="color:var(--accent)"><use href="#i-spark"/></svg>Conseil stratégie</h3><button class="btn icon sm ghost" id="aiClose" type="button" aria-label="Fermer"><svg class="i"><use href="#i-x"/></svg></button></div>
+    <div class="chat" id="chat" aria-live="polite"></div>
+    <div class="sugs" id="sugs"></div>
+    <form id="aiForm"><textarea class="in" id="aiIn" rows="1" placeholder="Posez votre question sur le ciblage, la période, la RSE…" aria-label="Votre question"></textarea><button class="btn primary icon" id="aiSend" type="submit" aria-label="Envoyer"><svg class="i"><use href="#i-send"/></svg></button></form>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* Version autonome : enregistrement de fichiers par le navigateur. Le conseil IA n'est pas disponible hors de Claude. */
+window.claude={use:function(n){return Promise.resolve(n==='downloads'?{save:function(o){var b=o.data instanceof Blob?o.data:new Blob([o.data]);var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=o.filename;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);return Promise.resolve({status:'saved'})}}:null)}};
+</script>
+<script>
+(function(){
+'use strict';
+/* ---------- helpers ---------- */
+var $=function(s,r){return (r||document).querySelector(s)}, $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var nf=new Intl.NumberFormat('fr-FR'), eur=new Intl.NumberFormat('fr-FR',{style:'currency',currency:'EUR',maximumFractionDigits:0});
+var ic=function(n,c){return '<svg class="i '+(c||'')+'" aria-hidden="true"><use href="#i-'+n+'"/></svg>'};
+var clamp=function(v,a,b){return Math.min(b,Math.max(a,v))};
+var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+var toastT;function toast(m){var t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(function(){t.classList.remove('on')},2600)}
+function copyText(txt){
+  function fb(){var ta=document.createElement('textarea');ta.value=txt;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;opacity:0;top:0';document.body.appendChild(ta);ta.select();var ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();toast(ok?'Copié dans le presse-papiers':'Copie impossible, sélectionnez le texte à la main')}
+  try{navigator.clipboard.writeText(txt).then(function(){toast('Copié dans le presse-papiers')},fb)}catch(e){fb()}
+}
+
+/* ---------- data ---------- */
+var BOX={w:600,h:520,lng0:1.75,lng1:3.45,lat0:44.78,lat1:43.70};
+function proj(lng,lat){return [20+(lng-BOX.lng0)/(BOX.lng1-BOX.lng0)*560, 20+(BOX.lat0-lat)/(BOX.lat0-BOX.lat1)*480]}
+var CITIES=[
+ {id:'rodez',name:'Rodez',pop:24000,pops:'24 000 hab.',base:450,co2:120,lng:2.57,lat:44.35},
+ {id:'millau',name:'Millau',pop:22000,pops:'22 000 hab.',base:420,co2:110,lng:3.08,lat:44.10},
+ {id:'villefranche',name:'Villefranche-de-Rouergue',short:'Villefranche',pop:11500,pops:'11 500 hab.',base:290,co2:75,lng:2.03,lat:44.35},
+ {id:'espalion',name:'Espalion',pop:4500,pops:'4 500 hab.',base:180,co2:45,lng:2.76,lat:44.52},
+ {id:'decazeville',name:'Decazeville',pop:5300,pops:'5 300 hab.',base:200,co2:50,lng:2.25,lat:44.55},
+ {id:'saintaffrique',name:'Saint-Affrique',pop:8000,pops:'8 000 hab.',base:240,co2:60,lng:2.88,lat:43.95}
+];
+CITIES.forEach(function(c){var p=proj(c.lng,c.lat);c.x=p[0];c.y=p[1];c.short=c.short||c.name});
+var OUTLINE=[[1.98,44.62],[2.22,44.72],[2.55,44.68],[2.78,44.78],[3.0,44.74],[3.2,44.62],[3.32,44.45],[3.3,44.28],[3.42,44.12],[3.38,43.97],[3.2,43.88],[3.05,43.74],[2.85,43.72],[2.62,43.8],[2.4,43.86],[2.18,43.98],[1.95,44.05],[1.8,44.2],[1.78,44.38],[1.88,44.5]];
+var FORMATS=[
+ {id:'a6',label:'Flyer A6',sub:'105 × 148 mm',print:38},
+ {id:'a5',label:'Flyer A5',sub:'148 × 210 mm',print:52},
+ {id:'dep',label:'Dépliant 3 volets',sub:'A4 plié',print:84},
+ {id:'aff',label:'Affiche A3',sub:'297 × 420 mm',print:190}];
+var MODES=[
+ {id:'bal',label:'Boîte aux lettres',sub:'Distribution ciblée',dist:58},
+ {id:'street',label:'Street marketing',sub:'Remise en main propre',dist:96},
+ {id:'aff',label:'Affichage de proximité',sub:'Commerces et panneaux',dist:74}];
+var PAPERS=[{id:'recycled',label:'100 % recyclé FSC',sub:'Coefficient 1,05',m:1.05,co2:1.4},{id:'standard',label:'Couché mat standard',sub:'Coefficient 0,95',m:.95,co2:1}];
+var DELAYS=[{id:'std',label:'Standard',sub:'10 jours ouvrés',m:1},{id:'fast',label:'Rapide',sub:'5 jours, +15 %',m:1.15}];
+var TABS=[
+ {id:'apercu',label:'Aperçu',long:'Aperçu et impact',ic:'chart'},
+ {id:'devis',label:'Devis',long:'Simulateur et carte',ic:'pin'},
+ {id:'tournee',label:'Tournée',long:'Suivi de tournée',ic:'route'},
+ {id:'bat',label:'BAT',long:'Studio BAT',ic:'proof'},
+ {id:'planning',label:'Planning',long:'Campagnes et planning',ic:'calendar'},
+ {id:'rse',label:'RSE',long:'Attestation RSE',ic:'shield'}];
+var MONTHS=[{m:'Mai',co2:18,fl:2500},{m:'Juin',co2:34,fl:4500},{m:'Juil.',co2:41,fl:5500},{m:'Août',co2:52,fl:7000},{m:'Sept.',co2:67,fl:7500},{m:'Oct.',co2:98,fl:8000}];
+var MISSIONS=[
+ {city:'Rodez, centre-ville et Bourran',qty:'12 000 flyers',date:'Aujourd’hui, 09 h 30',st:'En cours',p:65},
+ {city:'Millau, zone commerciale et cœur de ville',qty:'15 000 affiches',date:'Hier',st:'Terminé',p:100},
+ {city:'Villefranche-de-Rouergue',qty:'8 000 dépliants',date:'21 octobre 2026',st:'Terminé',p:100}];
+var EVTYPES=['Street marketing','Affichage de proximité','Boîte aux lettres'];
+var STATUS=['Confirmé','Planifié','Brouillon'];
+
+function defaults(){return {
+ tab:'apercu',theme:'system',
+ quote:{cities:['rodez','millau'],qty:10000,format:'a5',paper:'recycled',mode:'bal',delay:'std',client:''},
+ bat:{ver:'v2.1',filter:'all',sel:null,signed:null,pins:{
+   'v1.0':[{id:1,x:24,y:11,t:'Logo trop petit et peu lisible sur le bandeau vert',a:'Sophie L.',done:true}],
+   'v2.0':[{id:1,x:60,y:93,t:'Ajouter la mention papier FSC 100 % recyclé en pied de page',a:'Marc D.',done:true},{id:2,x:24,y:11,t:'Logo CDIFFUSION : augmenter le contraste de 10 %',a:'Sophie L.',done:true}],
+   'v2.1':[{id:1,x:24,y:11,t:'Logo CDIFFUSION : augmenter le contraste de 10 %',a:'Sophie L.',done:false},{id:2,x:60,y:93,t:'Vérifier la mention RSE FSC 100 % en bas de page',a:'Marc D.',done:true}]}},
+ events:[
+  {id:'e1',date:'2026-11-02',title:'Distribution flyers Bio-Rodez',type:'Street marketing',city:'rodez',status:'Confirmé',reach:12000},
+  {id:'e2',date:'2026-11-05',title:'Affiches Festival Millau Jazz',type:'Affichage de proximité',city:'millau',status:'Planifié',reach:18500},
+  {id:'e3',date:'2026-11-12',title:'Boîte aux lettres Villefranche',type:'Boîte aux lettres',city:'villefranche',status:'Brouillon',reach:8000},
+  {id:'e4',date:'2026-11-19',title:'Marché de Noël d’Espalion',type:'Affichage de proximité',city:'espalion',status:'Planifié',reach:4500},
+  {id:'e5',date:'2026-11-26',title:'Tournée Saint-Affrique centre',type:'Boîte aux lettres',city:'saintaffrique',status:'Brouillon',reach:6000}],
+ month:null,rseSrc:'campagne'};}
+var KEY='cdiffusion-aveyron-v1';
+function readSaved(){try{return JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){return null}}
+var S=defaults(), sv=readSaved();
+if(sv&&typeof sv==='object'){
+  if(sv.quote)Object.assign(S.quote,sv.quote);
+  if(sv.bat&&sv.bat.pins)Object.assign(S.bat,{pins:sv.bat.pins,signed:sv.bat.signed||null,ver:sv.bat.ver||'v2.1',filter:sv.bat.filter||'all'});
+  if(Array.isArray(sv.events))S.events=sv.events;
+  if(sv.theme)S.theme=sv.theme;
+}
+S.quote.cities=(S.quote.cities||[]).filter(function(id){return CITIES.some(function(c){return c.id===id})});
+if(!S.quote.cities.length)S.quote.cities=['rodez'];
+S.quote.qty=clamp(Number(S.quote.qty)||10000,2500,50000);
+if(!FORMATS.some(function(f){return f.id===S.quote.format}))S.quote.format='a5';
+if(!MODES.some(function(f){return f.id===S.quote.mode}))S.quote.mode='bal';
+if(!PAPERS.some(function(f){return f.id===S.quote.paper}))S.quote.paper='recycled';
+if(!DELAYS.some(function(f){return f.id===S.quote.delay}))S.quote.delay='std';
+['v1.0','v2.0','v2.1'].forEach(function(v){if(!Array.isArray(S.bat.pins[v]))S.bat.pins[v]=[]});
+var saveT;function save(){clearTimeout(saveT);saveT=setTimeout(function(){try{localStorage.setItem(KEY,JSON.stringify({quote:S.quote,bat:{pins:S.bat.pins,signed:S.bat.signed,ver:S.bat.ver,filter:S.bat.filter},events:S.events,theme:S.theme}))}catch(e){}},150)}
+var byId=function(id){return CITIES.filter(function(c){return c.id===id})[0]};
+
+/* ---------- pricing ---------- */
+function alloc(q){
+  var sel=CITIES.filter(function(c){return q.cities.indexOf(c.id)>-1});
+  var tot=sel.reduce(function(s,c){return s+c.pop},0);
+  var rows=sel.map(function(c){return {c:c,n:Math.round(q.qty*c.pop/tot/100)*100}});
+  rows.sort(function(a,b){return b.c.pop-a.c.pop});
+  var diff=q.qty-rows.reduce(function(s,r){return s+r.n},0); rows[0].n+=diff; return rows;
+}
+function quote(q){
+  var f=FORMATS.filter(function(x){return x.id===q.format})[0], m=MODES.filter(function(x){return x.id===q.mode})[0], p=PAPERS.filter(function(x){return x.id===q.paper})[0], d=DELAYS.filter(function(x){return x.id===q.delay})[0];
+  var sel=CITIES.filter(function(c){return q.cities.indexOf(c.id)>-1});
+  var deploy=sel.reduce(function(s,c){return s+c.base},0);
+  var print=q.qty/1000*f.print*p.m, dist=q.qty/1000*m.dist;
+  var dr=q.qty>=35000?.08:q.qty>=20000?.05:q.qty>=10000?.02:0;
+  var disc=(print+dist)*dr;
+  var pre=deploy+print+dist-disc, rush=pre*(d.m-1), ht=pre+rush, tva=ht*.2;
+  var co2=sel.reduce(function(s,c){return s+c.co2},0)*(q.qty/5000)*p.co2;
+  var couriers=Math.min(4,Math.ceil(q.qty/8000)), days=Math.ceil(q.qty/(couriers*1200));
+  return {f:f,m:m,p:p,d:d,sel:sel,deploy:deploy,print:print,dist:dist,dr:dr,disc:disc,rush:rush,ht:ht,tva:tva,ttc:ht+tva,co2:Math.round(co2),km:Math.round(q.qty*.012),couriers:couriers,days:days};
+}
+var fE=function(n){return eur.format(Math.round(n))};
+
+/* ---------- capabilities ---------- */
+var sample=null, downloads=null;
+function applyCaps(){ $('#btnAi').hidden=!sample; $$('[data-needs="dl"]').forEach(function(b){b.hidden=!downloads}); }
+(function(){
+  try{
+    if(window.claude&&claude.use){
+      Promise.all([claude.use('sample').catch(function(){return null}),claude.use('downloads').catch(function(){return null})]).then(function(r){sample=r[0];downloads=r[1];applyCaps();buildPalette()});
+    }
+  }catch(e){}
+})();
+function saveFile(name,data){
+  if(!downloads){toast('Le téléchargement n’est pas disponible ici. Utilisez « Copier ».');return}
+  downloads.save({filename:name,data:data}).then(function(){toast('Fichier prêt à être enregistré')},function(e){if(e&&e.code==='declined')return;toast('Enregistrement impossible dans cette vue')});
+}
+
+/* ---------- theme ---------- */
+function applyTheme(){
+  var r=document.documentElement; if(S.theme==='system')r.removeAttribute('data-theme'); else r.setAttribute('data-theme',S.theme);
+  var dark=S.theme==='dark'||(S.theme==='system'&&matchMedia('(prefers-color-scheme: dark)').matches);
+  var b=$('#btnTheme'); b.innerHTML=ic(dark?'sun':'moon'); b.title='Thème : '+({system:'automatique',light:'clair',dark:'sombre'}[S.theme]);
+}
+function cycleTheme(){S.theme=S.theme==='system'?'light':S.theme==='light'?'dark':'system';applyTheme();save();toast('Thème '+({system:'automatique',light:'clair',dark:'sombre'}[S.theme]))}
+
+/* ---------- navigation ---------- */
+var cleanup=null;
+function buildNav(){
+  var h='';TABS.forEach(function(t){h+='<button type="button" data-tab="'+t.id+'">'+ic(t.ic)+t.label+'</button>'});
+  $('#nav').innerHTML=h.replace(/(<button[^>]*>)(<svg.*?<\/svg>)([^<]+)/g,'$1$2$3');
+  $('#tabbar').innerHTML=h;
+}
+function go(tab,noScroll){
+  if(cleanup){cleanup();cleanup=null}
+  S.tab=tab;
+  var t=TABS.filter(function(x){return x.id===tab})[0]||TABS[0];
+  $('#title').textContent=t.long; $('#eyebrow').textContent='CDIFFUSION · Aveyron';
+  $$('[data-tab]').forEach(function(b){if(b.dataset.tab===tab)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+  $('#minibar').classList.toggle('on',tab==='devis');
+  var v=$('#view'); v.innerHTML=''; ({apercu:vApercu,devis:vDevis,tournee:vTournee,bat:vBat,planning:vPlanning,rse:vRse})[tab](v);
+  try{history.replaceState(null,'','#'+tab)}catch(e){}
+  if(!noScroll)window.scrollTo(0,0);
+}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-tab]');if(b){go(b.dataset.tab);return}var g=e.target.closest('[data-go]');if(g)go(g.dataset.go)});
+
+/* ---------- view: aperçu ---------- */
+function chartSvg(){
+  var W=340,H=250,L=30,B=30,T=24,iw=W-L-8,ih=H-B-T,mx=100,bw=iw/MONTHS.length;
+  var g='';[0,25,50,75,100].forEach(function(v){var y=T+ih-v/mx*ih;g+='<line class="gl" x1="'+L+'" x2="'+(W-8)+'" y1="'+y+'" y2="'+y+'"/><text x="'+(L-8)+'" y="'+(y+4)+'" text-anchor="end">'+v+'</text>'});
+  var bars='';MONTHS.forEach(function(m,i){var h=m.co2/mx*ih,x=L+i*bw+bw*.18,w=bw*.64,y=T+ih-h,last=i===MONTHS.length-1;
+    bars+='<rect class="bar-r'+(last?' last':'')+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="4"/><text class="val" x="'+(x+w/2)+'" y="'+(y-6)+'" text-anchor="middle">'+m.co2+'</text><text x="'+(x+w/2)+'" y="'+(H-10)+'" text-anchor="middle">'+m.m+'</text>'});
+  return '<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="CO₂ évité par mois, en kilogrammes : '+MONTHS.map(function(m){return m.m+' '+m.co2}).join(', ')+'">'+g+bars+'<text x="'+L+'" y="12">kg CO₂ évités</text></svg>';
+}
+function nextEvents(n){var t=new Date().toISOString().slice(0,10);var up=S.events.filter(function(e){return e.date>=t}).sort(function(a,b){return a.date<b.date?-1:1});return (up.length?up:S.events.slice().sort(function(a,b){return a.date<b.date?-1:1})).slice(0,n)}
+function dchip(iso){var d=new Date(iso+'T12:00:00');return '<div class="date-chip"><b class="num">'+d.getDate()+'</b><span>'+d.toLocaleDateString('fr-FR',{month:'short'}).replace('.','')+'</span></div>'}
+function stBadge(s){return '<span class="badge '+({Confirmé:'b-ok',Planifié:'b-info',Brouillon:'b-mute'}[s]||'b-mute')+'">'+esc(s)+'</span>'}
+function vApercu(v){
+  var signed=S.bat.signed?1:0;
+  v.innerHTML=
+  '<section class="hero"><div style="min-width:0"><span class="live"><span class="pulse"></span>Campagne active Aveyron 2026-B</span>'+
+  '<h2>35 000 flyers distribués à vélo, <em>310 kg de CO₂</em> évités.</h2><p class="sub">Suivez l’impact écologique et l’avancement de vos distributions en Aveyron, de l’impression au dépôt dans la boîte aux lettres.</p>'+
+  '<div class="acts"><button class="btn sun" type="button" data-go="devis">'+ic('plus')+'Simuler une campagne</button><button class="btn onhero" type="button" data-go="tournee">'+ic('route')+'Suivre la tournée</button></div></div>'+
+  '<div class="hm">'+heroMap()+'</div></section>'+
+  '<section class="kpis" aria-label="Indicateurs clés">'+
+  kpi('Volume imprimé et distribué','35 000','flyers FSC','+12 % ce mois','file')+
+  kpi('CO₂ évité en vélo-cargo','310','kg','100 % zéro émission locale','leaf')+
+  kpi('Taux de lecture estimé','68,4','%','Boîte aux lettres, estimation','eye')+
+  kpi('BAT validés',(3+signed)+' / 4','supports',signed?'Dernier BAT signé':'1 BAT en attente de signature','proof')+'</section>'+
+  '<div class="grid2"><section class="panel"><div class="ph"><div><h3>Missions récentes en Aveyron</h3><p>Dernières distributions par ville</p></div><button class="btn sm" type="button" data-go="tournee">Voir la tournée'+ic('arrow','sm')+'</button></div>'+
+  MISSIONS.map(function(m){return '<div class="mission"><div><b>'+esc(m.city)+'</b><div class="s">'+esc(m.qty)+' · '+esc(m.date)+'</div></div><div class="r"><span class="badge '+(m.st==='En cours'?'b-info':'b-ok')+'">'+m.st+'</span><div class="bar" role="progressbar" aria-valuenow="'+m.p+'" aria-valuemin="0" aria-valuemax="100"><i style="width:'+m.p+'%"></i></div></div></div>'}).join('')+'</section>'+
+  '<section class="panel"><div class="ph"><div><h3>CO₂ évité par mois</h3><p>Mai à octobre 2026</p></div></div>'+chartSvg()+'</section></div>'+
+  '<div class="grid2 even"><section class="panel"><div class="ph"><div><h3>Prochains événements</h3><p>Issus de votre planning</p></div><button class="btn sm" type="button" data-go="planning">Planning'+ic('arrow','sm')+'</button></div>'+
+  nextEvents(3).map(function(e){var c=byId(e.city);return '<div class="evrow">'+dchip(e.date)+'<div style="min-width:0;flex:1"><b>'+esc(e.title)+'</b><div class="faint" style="font-size:12.5px">'+esc(e.type)+(c?' · '+esc(c.short):'')+' · '+nf.format(e.reach)+' personnes</div></div>'+stBadge(e.status)+'</div>'}).join('')+'</section>'+
+  '<section class="panel"><div class="ph"><div><h3>Engagements RSE</h3><p>Papier 100 % recyclé FSC et livraison en triporteur électrique</p></div>'+ic('shield','lg')+'</div>'+
+  '<table class="lines"><tbody><tr><td>CO₂ évité</td><td><b style="color:var(--accent)">310 kg</b></td></tr><tr><td>Kilomètres à vélo</td><td>420 km</td></tr><tr><td>Papier</td><td>100 % recyclé FSC</td></tr></tbody></table>'+
+  '<button class="btn" type="button" data-go="rse" style="margin-top:14px;width:100%">Voir l’attestation RSE'+ic('arrow','sm')+'</button></section></div>';
+}
+function heroMap(){
+  var hub=byId('rodez'),pts=OUTLINE.map(function(p){var c=proj(p[0],p[1]);return c[0].toFixed(1)+','+c[1].toFixed(1)}).join(' ');
+  var h='<svg viewBox="0 0 600 520" aria-hidden="true"><polygon points="'+pts+'" fill="rgba(234,245,238,.07)" stroke="rgba(234,245,238,.5)" stroke-width="2" stroke-linejoin="round"/>';
+  CITIES.forEach(function(c){if(c.id==='rodez')return;var mx=(hub.x+c.x)/2,my=(hub.y+c.y)/2-24;h+='<path class="mp-route" style="stroke:var(--gold);opacity:.85" d="M'+hub.x.toFixed(1)+' '+hub.y.toFixed(1)+' Q'+mx.toFixed(1)+' '+my.toFixed(1)+' '+c.x.toFixed(1)+' '+c.y.toFixed(1)+'"/>'});
+  CITIES.forEach(function(c){var r=c.id==='rodez'?12:6+Math.sqrt(c.pop)/30,right=c.x>470,dx=right?-(r+8):(r+8);
+    if(c.id==='rodez')h+='<circle cx="'+c.x.toFixed(1)+'" cy="'+c.y.toFixed(1)+'" r="30" fill="var(--gold)" opacity=".18"/>';
+    h+='<circle cx="'+c.x.toFixed(1)+'" cy="'+c.y.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(c.id==='rodez'?'var(--gold)':'var(--hero-ink)')+'"/><text x="'+(c.x+dx).toFixed(1)+'" y="'+(c.y+7).toFixed(1)+'" text-anchor="'+(right?'end':'start')+'">'+esc(c.short)+'</text>'});
+  return h+'</svg>';
+}
+function kpi(l,v,u,t,i){return '<div class="kpi"><div class="l">'+ic(i,'sm')+l+'</div><div class="v num">'+v+'<small>'+u+'</small></div><div class="t">'+t+'</div></div>'}
+
+/* ---------- view: devis ---------- */
+function mapSvg(){
+  var q=S.quote,hub=byId('rodez'),h='';
+  var pts=OUTLINE.map(function(p){var c=proj(p[0],p[1]);return c[0].toFixed(1)+','+c[1].toFixed(1)}).join(' ');
+  h+='<svg viewBox="0 0 '+BOX.w+' '+BOX.h+'" role="group" aria-label="Carte schématique de l’Aveyron. Sélectionnez les villes d’intervention.">';
+  for(var i=1;i<6;i++)h+='<line class="mp-grid" x1="'+(i*100)+'" y1="0" x2="'+(i*100)+'" y2="'+BOX.h+'"/>';
+  for(var j=1;j<5;j++)h+='<line class="mp-grid" x1="0" y1="'+(j*104)+'" x2="'+BOX.w+'" y2="'+(j*104)+'"/>';
+  h+='<polygon class="mp-out" points="'+pts+'"/>';
+  h+='<path class="mp-river" d="M170 170 C230 190 250 215 290 215 S400 250 440 330 S520 380 560 360"/>';
+  CITIES.forEach(function(c){
+    if(c.id==='rodez'||q.cities.indexOf(c.id)<0)return;
+    var mx=(hub.x+c.x)/2, my=(hub.y+c.y)/2-24;
+    h+='<path class="mp-route" d="M'+hub.x.toFixed(1)+' '+hub.y.toFixed(1)+' Q'+mx.toFixed(1)+' '+my.toFixed(1)+' '+c.x.toFixed(1)+' '+c.y.toFixed(1)+'"/>';
+  });
+  CITIES.forEach(function(c){
+    var on=q.cities.indexOf(c.id)>-1, r=5+Math.sqrt(c.pop)/11;
+    var anchor=c.x>470?'end':'start', dx=c.x>470?-(r+6):(r+6);
+    h+='<g class="mp-node '+(on?'on':'off')+'" data-city="'+c.id+'" role="button" tabindex="0" aria-pressed="'+on+'" aria-label="'+esc(c.name)+', '+c.pops+'">';
+    if(on)h+='<circle class="mp-halo" cx="'+c.x.toFixed(1)+'" cy="'+c.y.toFixed(1)+'" r="'+(r*2.6).toFixed(1)+'"/>';
+    h+='<circle class="c" cx="'+c.x.toFixed(1)+'" cy="'+c.y.toFixed(1)+'" r="'+r.toFixed(1)+'"/><text x="'+(c.x+dx).toFixed(1)+'" y="'+(c.y+4).toFixed(1)+'" text-anchor="'+anchor+'">'+esc(c.short)+'</text></g>';
+  });
+  h+='<g class="mp-base"><rect x="'+(hub.x-4).toFixed(1)+'" y="'+(hub.y+16).toFixed(1)+'" width="8" height="8" rx="2"/><text x="'+(hub.x-10).toFixed(1)+'" y="'+(hub.y+26).toFixed(1)+'" text-anchor="end">base logistique</text></g>';
+  h+='<text x="22" y="506" style="font:500 10px var(--mono);fill:var(--ink-3)">Tracé schématique, hors échelle</text></svg>';
+  return h;
+}
+function optGroup(name,items,cur,extra){return '<div class="opts '+(extra||'')+'">'+items.map(function(o){return '<label class="opt"><input type="radio" name="'+name+'" value="'+o.id+'"'+(o.id===cur?' checked':'')+'><span><b>'+esc(o.label)+'</b><small>'+esc(o.sub)+'</small></span></label>'}).join('')+'</div>'}
+function vDevis(v){
+  var q=S.quote;
+  v.innerHTML='<div class="devis"><form class="form panel" id="qf" onsubmit="return false">'+
+  '<div class="ph" style="margin:0"><div><h2>Configuration de la campagne</h2><p>Chaque réglage met le devis à jour en direct.</p></div></div>'+
+  '<div class="field"><label for="qClient">Client ou projet</label><input class="in" id="qClient" type="text" maxlength="60" placeholder="ex. Festival Jazz de Millau" value="'+esc(q.client)+'"></div>'+
+  '<fieldset><legend>Villes d’intervention</legend><div class="chips" id="qCities">'+CITIES.map(function(c){return '<button type="button" class="chip" data-city="'+c.id+'" aria-pressed="'+(q.cities.indexOf(c.id)>-1)+'"><span><b>'+esc(c.short)+'</b><small>'+c.pops+'</small></span>'+ic('check','sm')+'</button>'}).join('')+'</div></fieldset>'+
+  '<fieldset><legend>Quantité imprimée et distribuée</legend><div class="qty"><div style="flex:1;min-width:180px"><input type="range" id="qRange" min="2500" max="50000" step="2500" value="'+q.qty+'" aria-label="Quantité d’exemplaires"></div><div class="field" style="width:130px"><input class="in num" id="qNum" type="number" min="2500" max="50000" step="2500" value="'+q.qty+'" aria-label="Quantité précise"></div></div>'+
+  '<div class="presets" style="margin-top:8px">'+[5000,10000,25000,50000].map(function(n){return '<button class="btn sm ghost" type="button" data-qty="'+n+'">'+nf.format(n)+'</button>'}).join('')+'</div></fieldset>'+
+  '<fieldset><legend>Support imprimé</legend>'+optGroup('format',FORMATS,q.format)+'</fieldset>'+
+  '<fieldset><legend>Mode de distribution</legend>'+optGroup('mode',MODES,q.mode,'one')+'</fieldset>'+
+  '<fieldset><legend>Papier</legend>'+optGroup('paper',PAPERS,q.paper)+'</fieldset>'+
+  '<fieldset><legend>Délai</legend>'+optGroup('delay',DELAYS,q.delay)+'</fieldset>'+
+  '<details><summary>Hypothèses du simulateur</summary><ul><li>Forfait de déploiement par ville, d’après la grille de la maquette.</li><li>Impression : prix au millier selon le support, multiplié par le coefficient papier.</li><li>Distribution : prix au millier selon le mode choisi.</li><li>Remise de volume sur impression et distribution : 2 % dès 10 000, 5 % dès 20 000, 8 % dès 35 000.</li><li>Répartition par ville au prorata de la population. Capacité estimée : 1 200 exemplaires par livreur et par jour, 4 livreurs au maximum.</li><li>CO₂ évité : coefficient par ville, proportionnel au volume, majoré de 40 % pour le papier recyclé. À remplacer par vos facteurs d’émission.</li></ul></details>'+
+  '</form><div class="sticky" style="display:grid;gap:22px;min-width:0"><section class="panel"><div class="ph"><div><h3>Carte du territoire</h3><p>Touchez une ville pour l’ajouter ou la retirer.</p></div></div><div class="mapbox" id="mapHost"></div></section>'+
+  '<section class="panel" id="sumHost" aria-live="polite"></section></div></div>';
+  $('#mapHost').innerHTML=mapSvg(); renderSummary();
+  var f=$('#qf');
+  function setQty(n){n=clamp(Math.round(n/2500)*2500,2500,50000);S.quote.qty=n;$('#qRange').value=n;$('#qNum').value=n;upd()}
+  f.addEventListener('input',function(e){var t=e.target;
+    if(t.id==='qRange'){S.quote.qty=Number(t.value);$('#qNum').value=t.value;upd()}
+    else if(t.id==='qNum'){var n=Number(t.value);if(n>=2500&&n<=50000){S.quote.qty=n;$('#qRange').value=n;upd()}}
+    else if(t.id==='qClient'){S.quote.client=t.value;save()}});
+  f.addEventListener('change',function(e){var t=e.target;
+    if(t.id==='qNum')setQty(Number(t.value)||10000);
+    else if(t.name&&t.type==='radio'){S.quote[t.name]=t.value;upd()}});
+  f.addEventListener('click',function(e){
+    var c=e.target.closest('[data-city]');if(c){toggleCity(c.dataset.city);return}
+    var p=e.target.closest('[data-qty]');if(p)setQty(Number(p.dataset.qty))});
+  var mh=$('#mapHost');
+  mh.addEventListener('click',function(e){var n=e.target.closest('[data-city]');if(n)toggleCity(n.dataset.city)});
+  mh.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){var n=e.target.closest('[data-city]');if(n){e.preventDefault();toggleCity(n.dataset.city)}}});
+  $('#miniGo').onclick=function(){$('#sumHost').scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'})};
+  cleanup=function(){};
+}
+function toggleCity(id){
+  var a=S.quote.cities,i=a.indexOf(id);
+  if(i>-1){if(a.length===1){toast('Gardez au moins une ville');return}a.splice(i,1)}else a.push(id);
+  $$('#qCities [data-city]').forEach(function(b){b.setAttribute('aria-pressed',S.quote.cities.indexOf(b.dataset.city)>-1)});
+  var fo=document.activeElement&&document.activeElement.dataset&&document.activeElement.dataset.city;
+  $('#mapHost').innerHTML=mapSvg(); if(fo&&document.activeElement.closest&&!document.activeElement.closest('#qCities')){var n=$('#mapHost [data-city="'+fo+'"]');if(n)n.focus()}
+  upd();
+}
+function upd(){renderSummary();save()}
+function renderSummary(){
+  var q=S.quote,r=quote(q),rows=alloc(q),host=$('#sumHost'); if(!host)return;
+  $('#miniTotal').textContent=fE(r.ht);
+  host.innerHTML=
+  '<div class="total"><div><div class="eyebrow">Estimation totale hors taxes</div><div class="big num">'+fE(r.ht)+'<small>HT</small></div></div><div class="muted num" style="text-align:right;font-size:13px">'+fE(r.ttc)+' TTC<br>'+q.cities.length+' ville'+(q.cities.length>1?'s':'')+' · '+nf.format(q.qty)+' ex.</div></div>'+
+  '<div class="stats3"><div class="st"><div class="l">CO₂ évité</div><div class="v num" style="color:var(--accent)">'+nf.format(r.co2)+'<small>kg</small></div></div><div class="st"><div class="l">À vélo</div><div class="v num">'+nf.format(r.km)+'<small>km</small></div></div><div class="st"><div class="l">Durée</div><div class="v num">'+r.days+'<small>jour'+(r.days>1?'s':'')+'</small></div></div></div>'+
+  '<table class="lines"><tbody>'+
+  '<tr><td>Déploiement<br><small>'+r.sel.length+' ville'+(r.sel.length>1?'s':'')+'</small></td><td>'+fE(r.deploy)+'</td></tr>'+
+  '<tr><td>Impression<br><small>'+esc(r.f.label)+', '+esc(r.p.label)+'</small></td><td>'+fE(r.print)+'</td></tr>'+
+  '<tr><td>Distribution<br><small>'+esc(r.m.label)+', '+r.couriers+' livreur'+(r.couriers>1?'s':'')+'</small></td><td>'+fE(r.dist)+'</td></tr>'+
+  (r.disc>0?'<tr class="neg"><td>Remise de volume<br><small>'+Math.round(r.dr*100)+' % sur impression et distribution</small></td><td>− '+fE(r.disc)+'</td></tr>':'')+
+  (r.rush>0?'<tr><td>Délai rapide<br><small>+15 %</small></td><td>'+fE(r.rush)+'</td></tr>':'')+
+  '<tr class="sum"><td>Total HT</td><td>'+fE(r.ht)+'</td></tr><tr><td>TVA 20 %</td><td>'+fE(r.tva)+'</td></tr><tr class="sum"><td>Total TTC</td><td>'+fE(r.ttc)+'</td></tr></tbody></table>'+
+  '<div class="scroll-x" style="margin-top:14px"><table class="alloc"><thead><tr><th>Ville</th><th>Exemplaires</th></tr></thead><tbody>'+rows.map(function(x){return '<tr><td>'+esc(x.c.short)+'</td><td class="num">'+nf.format(x.n)+'</td></tr>'}).join('')+'</tbody></table></div>'+
+  '<div class="ctl" style="margin-top:16px"><button class="btn primary" type="button" id="dlQuote" data-needs="dl"'+(downloads?'':' hidden')+'>'+ic('download')+'Télécharger le devis</button><button class="btn" type="button" id="cpQuote">'+ic('copy')+'Copier le récapitulatif</button></div>'+
+  '<p class="faint" style="font-size:12px;margin-top:10px">Estimation indicative, non contractuelle. Les tarifs sont des exemples.</p>';
+  $('#dlQuote').onclick=function(){saveFile('estimation-cdiffusion.html',quoteDoc())};
+  $('#cpQuote').onclick=function(){copyText(quoteText())};
+}
+function quoteText(){
+  var q=S.quote,r=quote(q),rows=alloc(q);
+  return 'ESTIMATION DE CAMPAGNE CDIFFUSION\n'+(q.client?'Client : '+q.client+'\n':'')+'Support : '+r.f.label+' ('+r.f.sub+'), papier '+r.p.label+'\nDistribution : '+r.m.label+', délai '+r.d.label.toLowerCase()+' ('+r.d.sub+')\nQuantité : '+nf.format(q.qty)+' exemplaires\n\nRépartition :\n'+rows.map(function(x){return '- '+x.c.name+' : '+nf.format(x.n)}).join('\n')+'\n\nDéploiement : '+fE(r.deploy)+'\nImpression : '+fE(r.print)+'\nDistribution : '+fE(r.dist)+'\n'+(r.disc>0?'Remise de volume : -'+fE(r.disc)+'\n':'')+(r.rush>0?'Délai rapide : '+fE(r.rush)+'\n':'')+'TOTAL HT : '+fE(r.ht)+'\nTVA 20 % : '+fE(r.tva)+'\nTOTAL TTC : '+fE(r.ttc)+'\n\nCO2 évité estimé : '+r.co2+' kg · '+r.km+' km à vélo · durée estimée '+r.days+' jour(s)\nEstimation indicative, non contractuelle.';
+}
+function quoteDoc(){
+  var q=S.quote,r=quote(q),rows=alloc(q);
+  var tr=function(a,b,c){return '<tr'+(c?' class="s"':'')+'><td>'+a+'</td><td>'+b+'</td></tr>'};
+  return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Estimation CDIFFUSION</title><style>body{font:15px/1.5 system-ui,sans-serif;max-width:720px;margin:32px auto;padding:0 20px;color:#12201A}h1{font-size:26px;margin:0 0 4px}.m{color:#5b6c62}table{width:100%;border-collapse:collapse;margin:18px 0}td{padding:8px 0;border-top:1px solid #d3dcd5}td:last-child{text-align:right}tr.s td{font-weight:700}.b{display:inline-block;background:#fbefcb;color:#6b4a00;border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600}</style></head><body><span class="b">Estimation indicative, non contractuelle</span><h1>Estimation de campagne</h1><p class="m">CDIFFUSION · Aveyron · '+new Date().toLocaleDateString('fr-FR')+(q.client?' · '+esc(q.client):'')+'</p><p>'+esc(r.f.label)+' ('+esc(r.f.sub)+'), papier '+esc(r.p.label)+'<br>'+esc(r.m.label)+', délai '+esc(r.d.label.toLowerCase())+'<br>'+nf.format(q.qty)+' exemplaires sur '+r.sel.length+' ville(s) : '+rows.map(function(x){return esc(x.c.short)+' '+nf.format(x.n)}).join(', ')+'</p><table>'+tr('Déploiement',fE(r.deploy))+tr('Impression',fE(r.print))+tr('Distribution',fE(r.dist))+(r.disc>0?tr('Remise de volume','− '+fE(r.disc)):'')+(r.rush>0?tr('Délai rapide',fE(r.rush)):'')+tr('Total HT',fE(r.ht),1)+tr('TVA 20 %',fE(r.tva))+tr('Total TTC',fE(r.ttc),1)+'</table><p class="m">CO₂ évité estimé : '+r.co2+' kg · '+r.km+' km à vélo · durée estimée '+r.days+' jour(s).</p></body></html>';
+}
+
+/* ---------- view: tournée ---------- */
+var TOURS=[
+ {id:'rodez',name:'Rodez, cœur de ville',courier:'Antoine',km:14.2,
+  d:'M 50 320 C 110 250, 150 225, 215 238 S 300 305, 355 252 S 430 120, 500 150 S 575 230, 595 85',
+  st:[['Gare de Rodez',.07],['Avenue Victor Hugo',.21],['Place d’Armes',.35],['Cathédrale Notre-Dame',.49],['Place de la Cité',.62],['Bourran',.77],['Boulevard Gambetta',.92]]},
+ {id:'millau',name:'Millau, zone commerciale',courier:'Inès',km:11.6,
+  d:'M 45 100 C 140 55, 205 130, 275 150 S 400 265, 470 222 S 560 120, 598 300',
+  st:[['Place du Mandarous',.08],['Boulevard de l’Ayrolle',.22],['Place Foch',.36],['Avenue Jean Jaurès',.5],['Boulevard de la Capelle',.64],['Zone commerciale nord',.78],['Sortie sud',.92]]},
+ {id:'villefranche',name:'Villefranche-de-Rouergue',courier:'Camille',km:9.4,
+  d:'M 60 205 C 125 335, 225 335, 285 240 S 385 75, 462 130 S 545 335, 592 240',
+  st:[['Place Notre-Dame',.08],['La Bastide',.22],['Avenue de Toulouse',.36],['Gare',.5],['Rive gauche',.64],['Zone d’activités',.78],['Entrée est',.92]]}];
+function vTournee(v){
+  var tour=TOURS[0],t=reduce?.42:.42,playing=!reduce,rate=1,raf=0,last=0,acc=0,done={};
+  var DUR=70, SIMMIN=190;
+  v.innerHTML='<section class="panel"><div class="ph" style="margin:0"><div><h2 style="font-size:19px"><span class="pulse" style="display:inline-block;margin-right:9px"></span>Tournée en direct</h2><p>Simulation avec des données de démonstration. Itinéraires schématiques.</p></div>'+
+  '<div class="tour-sel" id="tourSel">'+TOURS.map(function(x,i){return '<button class="btn sm" type="button" data-t="'+i+'" aria-pressed="'+(i===0)+'">'+esc(x.name)+'</button>'}).join('')+'</div></div></section>'+
+  '<div class="gps"><section class="panel"><div class="gmap" id="gmap"></div><div class="ctl" style="margin-top:14px"><button class="btn primary" id="gPlay" type="button"></button><button class="btn" id="gReset" type="button">'+ic('reset')+'Recommencer</button><div class="seg" id="gRate" role="group" aria-label="Vitesse de simulation"><button type="button" data-r="1" aria-pressed="true">×1</button><button type="button" data-r="3" aria-pressed="false">×3</button><button type="button" data-r="8" aria-pressed="false">×8</button></div></div><div class="stops" id="stopList" aria-label="Arrêts de la tournée"></div></section>'+
+  '<div style="display:grid;gap:22px;min-width:0"><section class="panel"><div class="ph"><div><h3>Télémétrie du triporteur</h3><p id="gWho"></p></div></div><div class="tele" id="tele"></div></section><section class="panel"><div class="ph"><div><h3>Preuves de dépôt</h3><p>Horodatées et géolocalisées</p></div><span class="badge b-ok">Direct</span></div><div id="proofs"></div></section></div></div>';
+  var pathEl,len=0;
+  function drawMap(){
+    var h='<svg viewBox="0 0 640 400" role="img" aria-label="Itinéraire schématique de la tournée '+esc(tour.name)+'">';
+    var gx=[0,90,180,270,360,450,540,640],gy=[0,60,130,200,270,340,400];
+    for(var a=0;a<gx.length-1;a++)for(var b=0;b<gy.length-1;b++){h+='<rect x="'+(gx[a]+11)+'" y="'+(gy[b]+11)+'" width="'+(gx[a+1]-gx[a]-22)+'" height="'+(gy[b+1]-gy[b]-22)+'" rx="6" class="'+((a*7+b*3)%5===0?'g-park':'g-blk')+'"/>'}
+    h+='<path class="g-river" d="M-10 120 C 120 170, 230 90, 330 150 S 520 230, 650 190"/>';
+    [60,130,200,270,340].forEach(function(y){h+='<path class="g-st s2" d="M0 '+y+' L640 '+(y+((y%3)*6-6))+'"/>'});
+    [90,180,270,360,450,540].forEach(function(x){h+='<path class="g-st" d="M'+x+' 0 L'+(x+((x%4)*5-10))+' 400"/>'});
+    h+='<path class="g-todo" id="gTodo" d="'+tour.d+'"/><path class="g-done" id="gDone" d="'+tour.d+'"/><g id="gStops"></g><g class="g-me" id="gMe"><circle class="o" r="18"/><circle class="i2" r="8"/><g transform="translate(12,-26)"><rect width="104" height="20" rx="10" x="-4"/><text x="48" y="14" text-anchor="middle"></text></g></g></svg>';
+    h+='<div class="gover"><span id="gGps">GPS 44,3512° N, 2,5759° E</span><span id="gProg">Progression 0 %</span></div>';
+    $('#gmap').innerHTML=h; pathEl=$('#gTodo'); len=pathEl.getTotalLength();
+    var dn=$('#gDone');dn.style.strokeDasharray=len;
+    $('#gStops').innerHTML=tour.st.map(function(s,i){var p=pathEl.getPointAtLength(len*s[1]);return '<g class="g-stop" data-i="'+i+'"><circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="11"/><text x="'+p.x.toFixed(1)+'" y="'+(p.y+4).toFixed(1)+'">'+(i+1)+'</text></g>'}).join('');
+    $('#stopList').innerHTML=tour.st.map(function(s,i){return '<div class="sc" data-i="'+i+'"><span class="sn">'+(i+1)+'</span><span class="nm">'+esc(s[0])+'</span><span class="tm">'+simClock(s[1])+'</span></div>'}).join('');
+    $('#gMe text').textContent='#02 · '+tour.courier;
+  }
+  function simClock(tt){var m=9*60+30+tt*SIMMIN;return String(Math.floor(m/60)).padStart(2,'0')+':'+String(Math.floor(m%60)).padStart(2,'0')}
+  function frame(){
+    var p=pathEl.getPointAtLength(len*t);
+    $('#gMe').setAttribute('transform','translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')');
+    $('#gDone').style.strokeDashoffset=len*(1-t);
+    $('#gProg').textContent='Progression '+Math.round(t*100)+' %';
+    var lat=44.3512+(p.y-200)*-.00012, lng=2.5759+(p.x-320)*.00018;
+    $('#gGps').textContent='GPS '+lat.toFixed(4).replace('.',',')+'° N, '+lng.toFixed(4).replace('.',',')+'° E';
+    var sp=17+3*Math.sin(t*47)+1.2*Math.sin(t*13), bat=Math.round(92-t*24), dist=tour.km*t, n=0;
+    tour.st.forEach(function(s,i){var ok=t>=s[1];if(ok)n++;var g=$('#gStops [data-i="'+i+'"]');if(g)g.classList.toggle('ok',ok);var sc=$('#stopList [data-i="'+i+'"]');if(sc)sc.classList.toggle('ok',ok);
+      if(ok&&!done[i]){done[i]=1;var el=document.createElement('div');el.className='proof';el.innerHTML='<div class="ph-ico">'+ic('camera')+'</div><div style="min-width:0"><b>'+esc(s[0])+'</b><div class="faint" style="font-size:12px">'+simClock(s[1])+' · 250 flyers déposés · photo simulée</div></div>';var pr=$('#proofs');if(pr.firstChild&&pr.firstChild.className==='empty')pr.innerHTML='';pr.insertBefore(el,pr.firstChild)}});
+    $('#tele').innerHTML=
+      tl('battery','Batterie VAE',bat+'<small>%</small>')+tl('gauge','Vitesse',sp.toFixed(1).replace('.',',')+'<small>km/h</small>')+tl('route','Distance',dist.toFixed(1).replace('.',',')+'<small>km</small>')+tl('box','Dépôts',nf.format(n*250)+'<small>flyers</small>')+tl('clock','Heure simulée',simClock(t))+tl('clock','Fin estimée',simClock(1));
+  }
+  function tl(i,l,val){return '<div class="st"><div class="l" style="display:flex;gap:5px;align-items:center">'+ic(i,'sm')+l+'</div><div class="v num">'+val+'</div></div>'}
+  function setPlayBtn(){$('#gPlay').innerHTML=ic(playing?'pause':'play')+(playing?'Pause':(t>=1?'Rejouer':'Reprendre'))}
+  function reset(keepPlay){t=0;done={};$('#proofs').innerHTML='<div class="empty">Les preuves de dépôt apparaissent au fil de la tournée.</div>';if(!keepPlay)playing=false;setPlayBtn();frame()}
+  function loop(ts){raf=requestAnimationFrame(loop);if(!last)last=ts;var dt=(ts-last)/1000;last=ts;if(!playing)return;t+=dt/DUR*rate;if(t>=1){t=1;playing=false;setPlayBtn()}acc+=dt;frame()}
+  function setTour(i){tour=TOURS[i];t=0;done={};drawMap();$('#gWho').textContent='Livreur #02 · '+tour.courier+' · '+tour.name;$$('#tourSel button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.t==i)});$('#proofs').innerHTML='<div class="empty">Les preuves de dépôt apparaissent au fil de la tournée.</div>';setPlayBtn();frame()}
+  setTour(0);t=reduce?.42:.42;
+  if(!reduce){/* démarre à 42 % comme dans la maquette */}
+  tour.st.forEach(function(s,i){if(t>=s[1])done[i]=0});
+  $('#proofs').innerHTML='';done={};frame();setPlayBtn();
+  $('#tourSel').onclick=function(e){var b=e.target.closest('[data-t]');if(b)setTour(Number(b.dataset.t))};
+  $('#gPlay').onclick=function(){if(t>=1){reset(true);playing=true}else playing=!playing;setPlayBtn()};
+  $('#gReset').onclick=function(){reset(false)};
+  $('#gRate').onclick=function(e){var b=e.target.closest('[data-r]');if(!b)return;rate=Number(b.dataset.r);$$('#gRate button').forEach(function(x){x.setAttribute('aria-pressed',x===b)})};
+  raf=requestAnimationFrame(loop);
+  cleanup=function(){cancelAnimationFrame(raf)};
+}
+
+/* ---------- view: BAT ---------- */
+var LATEST='v2.1';
+var PINS=function(){return S.bat.pins[S.bat.ver]};
+function flyerHtml(ver){
+  var op=ver==='v1.0'?.55:ver==='v2.0'?.75:.9;
+  var fsc=ver==='v1.0'?'':'Imprimé sur papier 100 % FSC recyclé · ';
+  return '<div class="f-head"><div class="f-logo" style="opacity:'+op+'">CD</div><div class="f-brand" style="opacity:'+op+'">CDIFFUSION</div></div>'+
+  '<div class="f-body"><div class="f-sub">Rodez et Millau · Édition 2026</div><div class="f-title">GRAND<br>FESTIVAL<br>AVEYRON</div>'+
+  '<div class="f-art"><svg viewBox="0 0 200 110" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><path d="M0 110V70C30 40 55 62 85 44S140 30 200 58V110z" fill="#BFE3D0"/><path d="M0 110V88C40 70 70 90 110 76S170 70 200 82V110z" fill="#0E7A51"/><g fill="none" stroke="#0C3F2B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="70" cy="88" r="9"/><circle cx="118" cy="88" r="9"/><path d="M70 88l14-22h22l12 22M84 66l-3-8h-9M106 66l-6 22"/></g><rect x="86" y="56" width="22" height="10" rx="2" fill="#E3A500"/></svg></div>'+
+  '<div class="f-tag">100 % éco-distribué par cyclo-cargo</div></div>'+
+  '<div class="f-foot">'+fsc+'Ne pas jeter sur la voie publique</div>';
+}
+function vBat(v){
+  v.innerHTML='<div class="bat"><section class="panel"><div class="ph"><div><h2 style="font-size:19px">Studio d’annotation BAT</h2><p>Épreuve « Grand Festival Aveyron », flyer A5. Cliquez sur la maquette pour poser une remarque.</p></div><div class="vers" id="vers" role="group" aria-label="Version de l’épreuve">'+['v1.0','v2.0','v2.1'].map(function(x){return '<button type="button" data-v="'+x+'" aria-pressed="'+(x===S.bat.ver)+'">'+x+'</button>'}).join('')+'</div></div>'+
+  '<div class="stage"><div class="flyer-w" id="fw"></div></div><div class="ctl" style="justify-content:space-between;margin-top:12px;font-size:12.5px;color:var(--ink-3)"><span id="batCount"></span><span id="batHint"></span></div></section>'+
+  '<section class="panel" style="display:grid;gap:14px"><div class="ph" style="margin:0"><div><h3>Remarques</h3><p id="batVer"></p></div><div class="seg" id="flt" role="group" aria-label="Filtrer"><button type="button" data-f="all">Toutes</button><button type="button" data-f="open">À traiter</button><button type="button" data-f="done">Résolues</button></div></div>'+
+  '<div class="field" id="newBox"><label for="batNew">Nouvelle remarque</label><div class="ctl" style="flex-wrap:nowrap"><input class="in" id="batNew" type="text" maxlength="140" placeholder="ex. Agrandir le logo de 10 %"><button class="btn" id="batMid" type="button" title="Épingler au centre de la maquette" aria-label="Épingler au centre">'+ic('pin')+'</button></div><span class="faint" style="font-size:12px">Écrivez la remarque, puis cliquez sur l’endroit concerné.</span></div>'+
+  '<div class="list" id="batList"></div><div id="signBox"></div></section></div>';
+  renderBat();
+  $('#vers').onclick=function(e){var b=e.target.closest('[data-v]');if(!b)return;S.bat.ver=b.dataset.v;S.bat.sel=null;$$('#vers button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});renderBat();save()};
+  $('#flt').onclick=function(e){var b=e.target.closest('[data-f]');if(!b)return;S.bat.filter=b.dataset.f;renderBatList();save()};
+  function addPin(x,y){
+    if(S.bat.ver!==LATEST||S.bat.signed){toast(S.bat.signed?'Ce BAT est signé, il n’accepte plus de remarques.':'Les versions précédentes sont en lecture seule.');return}
+    var inp=$('#batNew'),txt=inp.value.trim();
+    if(!txt){toast('Écrivez d’abord votre remarque.');inp.focus();return}
+    var arr=PINS(),id=arr.reduce(function(m,p){return Math.max(m,p.id)},0)+1;
+    arr.push({id:id,x:clamp(Math.round(x),2,98),y:clamp(Math.round(y),2,98),t:txt,a:'Vous',done:false});
+    S.bat.sel=id;inp.value='';renderBat();save();
+  }
+  $('#fw').addEventListener('click',function(e){
+    var pb=e.target.closest('.pin');
+    if(pb){S.bat.sel=Number(pb.dataset.id);renderBat();var it=$('#batList [data-id="'+S.bat.sel+'"]');if(it)it.scrollIntoView({block:'nearest'});return}
+    var fl=e.target.closest('.flyer');if(!fl)return;var r=fl.getBoundingClientRect();addPin((e.clientX-r.left)/r.width*100,(e.clientY-r.top)/r.height*100);
+  });
+  $('#batMid').onclick=function(){addPin(50,50)};
+  $('#batList').addEventListener('click',function(e){
+    var it=e.target.closest('[data-id]');if(!it)return;var id=Number(it.dataset.id),p=PINS().filter(function(x){return x.id===id})[0];if(!p)return;
+    if(e.target.closest('[data-act="tog"]')){if(S.bat.signed||S.bat.ver!==LATEST){toast('Lecture seule.');return}p.done=!p.done;S.bat.sel=id;renderBat();save();return}
+    if(e.target.closest('[data-act="del"]')){S.bat.pins[S.bat.ver]=PINS().filter(function(x){return x.id!==id});if(S.bat.sel===id)S.bat.sel=null;renderBat();save();return}
+    S.bat.sel=id;renderBat();
+  });
+  $('#signBox').addEventListener('click',function(e){
+    if(!e.target.closest('#batSign'))return;
+    var open=PINS().filter(function(p){return !p.done}).length,nm=($('#batName').value||'').trim();
+    if(open){toast('Résolvez les '+open+' remarque'+(open>1?'s':'')+' en attente avant de valider.');return}
+    if(nm.length<2){toast('Saisissez le nom du signataire.');$('#batName').focus();return}
+    S.bat.signed={name:nm,date:new Date().toISOString(),ver:LATEST};renderBat();save();toast('BAT validé et signé');
+  });
+  $('#signBox').addEventListener('click',function(e){if(e.target.closest('#batUnsign')){S.bat.signed=null;renderBat();save();toast('Signature retirée')}});
+}
+function renderBat(){
+  var ver=S.bat.ver,arr=PINS(),ro=ver!==LATEST||!!S.bat.signed;
+  $('#fw').innerHTML='<div class="flyer'+(ro?' ro':'')+'" aria-label="Maquette du flyer, version '+ver+'">'+flyerHtml(ver)+'</div>'+arr.map(function(p,i){return '<button type="button" class="pin'+(p.done?' done':'')+(S.bat.sel===p.id?' sel':'')+'" data-id="'+p.id+'" style="left:'+p.x+'%;top:'+p.y+'%" aria-label="Remarque '+(i+1)+' : '+esc(p.t)+'">'+(i+1)+'</button>'}).join('');
+  var open=arr.filter(function(p){return !p.done}).length;
+  $('#batCount').textContent=arr.length+' annotation'+(arr.length>1?'s':'')+' · '+open+' à traiter';
+  $('#batHint').innerHTML=open?'Contrôle pré-impression : <b style="color:var(--sun)">en attente</b>':'Contrôle pré-impression : <b style="color:var(--accent)">conforme</b>';
+  $('#batVer').textContent='Version '+ver+(ver===LATEST?(S.bat.signed?' · signée':' · version courante'):' · archivée, lecture seule');
+  $('#newBox').style.display=ro?'none':'';
+  renderBatList(); renderSign();
+}
+function renderBatList(){
+  var arr=PINS(),f=S.bat.filter;
+  $$('#flt button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.f===f)});
+  var show=arr.map(function(p,i){return {p:p,n:i+1}}).filter(function(x){return f==='all'||(f==='open'?!x.p.done:x.p.done)});
+  var ro=S.bat.ver!==LATEST||!!S.bat.signed;
+  $('#batList').innerHTML=show.length?show.map(function(x){var p=x.p;return '<div class="cm'+(p.done?' done':'')+(S.bat.sel===p.id?' sel':'')+'" data-id="'+p.id+'"><div class="h"><span style="display:flex;gap:8px;align-items:center;min-width:0"><span class="n">'+x.n+'</span><b style="font-size:13px">'+esc(p.a)+'</b></span><span class="badge '+(p.done?'b-ok':'b-warn')+'">'+(p.done?'Résolu':'À traiter')+'</span></div><p>'+esc(p.t)+'</p>'+(ro?'':'<div class="act"><button class="btn sm" type="button" data-act="tog">'+ic(p.done?'reset':'check','sm')+(p.done?'Rouvrir':'Marquer résolu')+'</button>'+(p.a==='Vous'?'<button class="btn sm ghost" type="button" data-act="del" aria-label="Supprimer la remarque">'+ic('trash','sm')+'</button>':'')+'</div>')+'</div>'}).join(''):'<div class="empty">Aucune remarque dans ce filtre.</div>';
+}
+function renderSign(){
+  var box=$('#signBox'),s=S.bat.signed;
+  if(S.bat.ver!==LATEST){box.innerHTML='';return}
+  if(s){var d=new Date(s.date);box.innerHTML='<div class="stamp">'+ic('shield','lg')+'<div><b>BAT validé, version '+esc(s.ver)+'</b><div style="font-size:12.5px">Signé par '+esc(s.name)+' le '+d.toLocaleDateString('fr-FR')+' à '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})+'</div></div></div><button class="btn sm ghost" id="batUnsign" type="button" style="margin-top:10px">Retirer la signature</button>';return}
+  var open=PINS().filter(function(p){return !p.done}).length;
+  box.innerHTML='<div class="field"><label for="batName">Nom du signataire</label><input class="in" id="batName" type="text" maxlength="60" autocomplete="name" placeholder="Prénom Nom"></div><button class="btn primary" id="batSign" type="button" style="width:100%;margin-top:10px"'+(open?' aria-disabled="true"':'')+'>'+ic('check')+'Valider et signer le BAT</button>'+(open?'<p class="faint" style="font-size:12px;margin-top:8px">'+open+' remarque'+(open>1?'s':'')+' à résoudre avant la signature.</p>':'');
+}
+
+/* ---------- view: planning ---------- */
+var pickDate=null;
+function vPlanning(v){
+  if(!S.month){var up=nextEvents(1)[0];var d=up?new Date(up.date+'T12:00:00'):new Date();S.month={y:d.getFullYear(),m:d.getMonth()}}
+  v.innerHTML='<div class="grid2"><section class="panel"><div class="ph"><div class="mnav"><button class="btn icon sm" id="mPrev" type="button" aria-label="Mois précédent">'+ic('chevl')+'</button><b id="mLab"></b><button class="btn icon sm" id="mNext" type="button" aria-label="Mois suivant">'+ic('chev')+'</button></div><div class="ctl"><button class="btn sm" id="mToday" type="button">Aujourd’hui</button><button class="btn sm" id="evCsv" type="button" data-needs="dl"'+(downloads?'':' hidden')+'>'+ic('download','sm')+'Exporter en CSV</button></div></div><div class="legend"><span class="ev s-Confirmé"><i></i><span style="display:block">Confirmé</span></span><span class="ev s-Planifié"><i></i><span style="display:block">Planifié</span></span><span class="ev s-Brouillon"><i></i><span style="display:block">Brouillon</span></span></div><div class="cal" id="cal"></div></section>'+
+  '<div style="display:grid;gap:22px;min-width:0"><section class="panel"><div class="ph"><div><h3>Planifier un événement</h3><p>Cliquez sur un jour du calendrier pour préremplir la date.</p></div></div><form class="fgrid" id="evF" onsubmit="return false">'+
+  '<div class="field w"><label for="evT">Titre</label><input class="in" id="evT" type="text" maxlength="80" placeholder="ex. Flyers marché de Rodez" required></div>'+
+  '<div class="field"><label for="evD">Date</label><input class="in" id="evD" type="date" required></div>'+
+  '<div class="field"><label for="evC">Ville</label><select class="in" id="evC">'+CITIES.map(function(c){return '<option value="'+c.id+'">'+esc(c.short)+'</option>'}).join('')+'</select></div>'+
+  '<div class="field"><label for="evY">Type</label><select class="in" id="evY">'+EVTYPES.map(function(x){return '<option>'+x+'</option>'}).join('')+'</select></div>'+
+  '<div class="field"><label for="evS">Statut</label><select class="in" id="evS">'+STATUS.map(function(x){return '<option'+(x==='Brouillon'?' selected':'')+'>'+x+'</option>'}).join('')+'</select></div>'+
+  '<div class="field w"><label for="evR">Portée ciblée (personnes)</label><input class="in num" id="evR" type="number" min="0" step="500" value="5000"></div>'+
+  '<button class="btn primary w" type="submit" id="evAdd" style="grid-column:1/-1">'+ic('plus')+'Ajouter au planning</button></form></section>'+
+  '<section class="panel"><div class="ph"><div><h3>Événements du mois</h3><p id="evSub"></p></div></div><div id="evList"></div></section></div></div>';
+  var d0=new Date(); $('#evD').value=pickDate||iso(S.month.y,S.month.m,Math.min(d0.getDate(),28));
+  renderCal();
+  $('#mPrev').onclick=function(){shiftMonth(-1)};$('#mNext').onclick=function(){shiftMonth(1)};
+  $('#mToday').onclick=function(){var d=new Date();S.month={y:d.getFullYear(),m:d.getMonth()};renderCal()};
+  $('#evCsv').onclick=function(){var rows=[['Date','Titre','Type','Ville','Statut','Portée']].concat(S.events.slice().sort(function(a,b){return a.date<b.date?-1:1}).map(function(e){var c=byId(e.city);return [e.date,e.title,e.type,c?c.name:'',e.status,e.reach]}));saveFile('planning-cdiffusion.csv','﻿'+rows.map(function(r){return r.map(function(x){return '"'+String(x).replace(/"/g,'""')+'"'}).join(';')}).join('\n'))};
+  $('#cal').addEventListener('click',function(e){var b=e.target.closest('[data-day]');if(!b)return;pickDate=b.dataset.day;$('#evD').value=pickDate;renderCal();$('#evT').focus()});
+  $('#evF').addEventListener('submit',function(e){e.preventDefault();
+    var t=$('#evT').value.trim(),d=$('#evD').value;if(!t||!d){toast('Renseignez un titre et une date.');return}
+    S.events.push({id:'e'+Date.now(),date:d,title:t,type:$('#evY').value,city:$('#evC').value,status:$('#evS').value,reach:Math.max(0,Number($('#evR').value)||0)});
+    var dt=new Date(d+'T12:00:00');S.month={y:dt.getFullYear(),m:dt.getMonth()};$('#evT').value='';renderCal();save();toast('Événement ajouté')});
+  $('#evList').addEventListener('click',function(e){var b=e.target.closest('[data-del]');if(b){S.events=S.events.filter(function(x){return x.id!==b.dataset.del});renderCal();save()}
+    var s=e.target.closest('[data-cyc]');if(s){var ev=S.events.filter(function(x){return x.id===s.dataset.cyc})[0];if(ev){ev.status=STATUS[(STATUS.indexOf(ev.status)+1)%3];renderCal();save()}}});
+}
+function iso(y,m,d){return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0')}
+function shiftMonth(n){var d=new Date(S.month.y,S.month.m+n,1);S.month={y:d.getFullYear(),m:d.getMonth()};renderCal()}
+function renderCal(){
+  var y=S.month.y,m=S.month.m,first=new Date(y,m,1),lead=(first.getDay()+6)%7,dim=new Date(y,m+1,0).getDate(),todayIso=new Date().toISOString().slice(0,10);
+  $('#mLab').textContent=first.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+  var h=['L','M','M','J','V','S','D'].map(function(d,i){return '<div class="dow" aria-hidden="true">'+d+'</div>'}).join('');
+  for(var i=0;i<lead;i++)h+='<div class="day o"></div>';
+  for(var d=1;d<=dim;d++){var k=iso(y,m,d),evs=S.events.filter(function(e){return e.date===k});
+    h+='<button type="button" class="day'+(((lead+d-1)%7)>4?' we':'')+(k===todayIso?' today':'')+(k===pickDate?' pick':'')+'" data-day="'+k+'" aria-label="'+d+' '+first.toLocaleDateString('fr-FR',{month:'long'})+(evs.length?', '+evs.length+' événement'+(evs.length>1?'s':''):'')+'"><span class="dn">'+d+'</span>'+evs.map(function(e){return '<span class="ev s-'+e.status+'"><i></i><span>'+esc(e.title)+'</span></span>'}).join('')+'</button>';}
+  $('#cal').innerHTML=h;
+  var list=S.events.filter(function(e){return e.date.slice(0,7)===y+'-'+String(m+1).padStart(2,'0')}).sort(function(a,b){return a.date<b.date?-1:1});
+  $('#evSub').textContent=list.length?list.length+' événement'+(list.length>1?'s':'')+' · '+nf.format(list.reduce(function(s,e){return s+e.reach},0))+' personnes ciblées':'Aucun événement ce mois-ci';
+  $('#evList').innerHTML=list.length?list.map(function(e){var c=byId(e.city);return '<div class="erow">'+dchip(e.date)+'<div style="min-width:0"><div class="t">'+esc(e.title)+'</div><div class="m">'+esc(e.type)+(c?' · '+esc(c.short):'')+' · '+nf.format(e.reach)+' pers.</div></div><div class="ctl" style="gap:6px"><button class="badge '+({Confirmé:'b-ok',Planifié:'b-info',Brouillon:'b-mute'}[e.status])+'" type="button" data-cyc="'+e.id+'" title="Changer le statut" style="border:0;cursor:pointer">'+esc(e.status)+'</button><button class="btn sm ghost icon" type="button" data-del="'+e.id+'" aria-label="Supprimer '+esc(e.title)+'" style="width:32px">'+ic('trash','sm')+'</button></div></div>'}).join(''):'<div class="empty">Choisissez un jour dans le calendrier pour planifier une première distribution.</div>';
+}
+
+/* ---------- view: RSE ---------- */
+function rseData(){
+  if(S.rseSrc==='devis'){var r=quote(S.quote);return {label:'Estimation du devis en cours',period:'Campagne simulée',vol:S.quote.qty,co2:r.co2,km:r.km,paper:r.p.label,mode:r.m.label}}
+  return {label:'Campagne Aveyron 2026-B',period:'Mai à octobre 2026',vol:35000,co2:310,km:420,paper:'100 % recyclé FSC',mode:'Triporteur électrique'};
+}
+function vRse(v){
+  v.innerHTML='<div class="rse"><section class="cert" id="cert"></section><div style="display:grid;gap:22px;min-width:0"><section class="panel"><div class="ph"><div><h3>Source des chiffres</h3><p>Choisissez les données de l’attestation.</p></div></div><div class="opts one" id="rseSrc"><label class="opt"><input type="radio" name="src" value="campagne"><span><b>Campagne en cours</b><small>Cumul mai à octobre 2026</small></span></label><label class="opt"><input type="radio" name="src" value="devis"><span><b>Devis simulé</b><small>Reprend vos réglages de l’onglet Devis</small></span></label></div>'+
+  '<div class="ctl" style="margin-top:16px"><button class="btn primary" id="rseDl" type="button" data-needs="dl"'+(downloads?'':' hidden')+'>'+ic('download')+'Télécharger l’attestation</button><button class="btn" id="rseCp" type="button">'+ic('copy')+'Copier le texte</button></div></section>'+
+  '<section class="panel"><div class="ph"><div><h3>Comment c’est calculé</h3></div></div><ul class="muted" style="margin:0;padding-left:18px;display:grid;gap:6px;font-size:13.5px"><li>Chaque ville porte un coefficient de CO₂ évité pour 5 000 exemplaires.</li><li>Le total suit le volume, avec +40 % pour le papier recyclé.</li><li>Les kilomètres sont estimés à 12 m de vélo par exemplaire.</li><li>Ces coefficients sont des exemples. Remplacez-les par vos facteurs d’émission avant toute diffusion.</li></ul></section></div></div>';
+  $('input[name=src][value='+S.rseSrc+']').checked=true;
+  renderCert();
+  $('#rseSrc').onchange=function(e){S.rseSrc=e.target.value;renderCert()};
+  $('#rseDl').onclick=function(){saveFile('attestation-rse-cdiffusion.html',certDoc())};
+  $('#rseCp').onclick=function(){var d=rseData();copyText('ATTESTATION D’IMPACT ÉCOLOGIQUE (EXEMPLE)\nCDIFFUSION · '+d.label+'\nPériode : '+d.period+'\nVolume : '+nf.format(d.vol)+' exemplaires\nCO2 évité : '+nf.format(d.co2)+' kg CO2 eq.\nDistance à vélo : '+nf.format(d.km)+' km\nPapier : '+d.paper+'\nMode de livraison : '+d.mode)};
+}
+function certInner(d){return '<div class="seal">'+ic('shield')+'</div><div><div class="eyebrow" style="color:var(--accent)">Attestation d’impact écologique</div><h2 style="margin-top:6px">Certificat RSE CDIFFUSION</h2><p class="faint" style="font-size:13px;margin-top:6px">'+esc(d.label)+' · '+esc(d.period)+'</p></div>'+
+  '<div class="cgrid"><div><div class="l">Émissions de CO₂ évitées</div><div class="v ac num">'+nf.format(d.co2)+' kg CO₂ eq.</div></div><div><div class="l">Mode de livraison</div><div class="v">'+esc(d.mode)+'</div></div><div><div class="l">Volume distribué</div><div class="v num">'+nf.format(d.vol)+' ex.</div></div><div><div class="l">Distance à vélo</div><div class="v num">'+nf.format(d.km)+' km</div></div></div>'+
+  '<p class="muted" style="font-size:13.5px;max-width:52ch">Cette attestation indique que les opérations de distribution en boîte aux lettres et de street marketing menées en Aveyron suivent la charte de sobriété carbone CDIFFUSION. Papier : '+esc(d.paper)+'.</p>'+
+  '<div class="sig"><div><div class="l">Référence</div><div class="mono">CD-2026-B-EXEMPLE</div></div><div><div class="l">Émise le</div><div>'+new Date().toLocaleDateString('fr-FR')+'</div></div><div class="box"><div class="l">Cachet et signature</div></div></div>'}
+function renderCert(){$('#cert').innerHTML=certInner(rseData())}
+function certDoc(){var d=rseData();return '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Attestation RSE CDIFFUSION</title><style>body{font:15px/1.55 system-ui,sans-serif;max-width:680px;margin:36px auto;padding:0 20px;color:#12201A;text-align:center}h1{font-size:30px;margin:6px 0}.e{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#0E7A51;font-weight:700}.g{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#d3dcd5;border:1px solid #d3dcd5;border-radius:10px;overflow:hidden;margin:24px 0;text-align:left}.g div{background:#fff;padding:12px 14px}.g small{display:block;color:#6c7c72;font-weight:600;font-size:12px}.g b{font-size:19px}.x{display:inline-block;background:#fbefcb;color:#6b4a00;border-radius:99px;padding:3px 12px;font-size:12px;font-weight:700}</style></head><body><span class="x">Exemple de démonstration, à valider avant diffusion</span><div class="e" style="margin-top:22px">Attestation d’impact écologique</div><h1>Certificat CDIFFUSION RSE</h1><p>'+esc(d.label)+' · '+esc(d.period)+'</p><div class="g"><div><small>CO₂ évité</small><b>'+nf.format(d.co2)+' kg CO₂ eq.</b></div><div><small>Mode de livraison</small><b>'+esc(d.mode)+'</b></div><div><small>Volume</small><b>'+nf.format(d.vol)+' exemplaires</b></div><div><small>Distance à vélo</small><b>'+nf.format(d.km)+' km</b></div></div><p>Cette attestation indique que les opérations de distribution menées en Aveyron suivent la charte de sobriété carbone CDIFFUSION. Papier : '+esc(d.paper)+'.</p><p style="color:#6c7c72;font-size:13px">Émise le '+new Date().toLocaleDateString('fr-FR')+'</p></body></html>'}
+
+/* ---------- command palette ---------- */
+var palItems=[],palSel=0,lastFocus=null;
+function buildPalette(){
+  palItems=TABS.map(function(t){return {l:'Ouvrir : '+t.long,k:t.label,i:t.ic,run:function(){go(t.id)}}}).concat([
+    {l:'Télécharger l’estimation de devis',k:'Devis',i:'download',run:function(){saveFile('estimation-cdiffusion.html',quoteDoc())},need:'dl'},
+    {l:'Copier le récapitulatif du devis',k:'Devis',i:'copy',run:function(){copyText(quoteText())}},
+    {l:'Annoter le dernier BAT',k:'BAT',i:'proof',run:function(){S.bat.ver=LATEST;go('bat')}},
+    {l:'Ouvrir le conseil stratégie IA',k:'IA',i:'spark',run:function(){openAi()},need:'ai'},
+    {l:'Changer de thème',k:'Affichage',i:'moon',run:cycleTheme},
+    {l:'Réinitialiser les données de démonstration',k:'Démo',i:'reset',run:function(){try{localStorage.removeItem(KEY)}catch(e){}var d=defaults();S.quote=d.quote;S.bat=d.bat;S.events=d.events;S.month=null;pickDate=null;go(S.tab);toast('Données de démonstration rétablies')}}
+  ]).filter(function(x){return !(x.need==='ai'&&!sample)&&!(x.need==='dl'&&!downloads)});
+}
+function openPal(){lastFocus=document.activeElement;$('#pal').hidden=false;$('#palIn').value='';palSel=0;renderPal();setTimeout(function(){$('#palIn').focus()},0)}
+function closePal(){$('#pal').hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+function renderPal(){
+  var qv=$('#palIn').value.trim().toLowerCase();
+  var list=palItems.filter(function(x){return !qv||(x.l+' '+x.k).toLowerCase().indexOf(qv)>-1});
+  palSel=clamp(palSel,0,Math.max(0,list.length-1));
+  $('#palList').innerHTML=list.length?list.map(function(x,i){return '<li><button type="button" role="option" data-i="'+i+'" aria-selected="'+(i===palSel)+'">'+ic(x.i)+'<span>'+esc(x.l)+'</span><small>'+esc(x.k)+'</small></button></li>'}).join(''):'<li class="empty" style="margin:8px">Aucune action trouvée.</li>';
+  $('#palList').onclick=function(e){var b=e.target.closest('[data-i]');if(b){var it=list[Number(b.dataset.i)];closePal();if(it)it.run()}};
+  $('#palIn').onkeydown=function(e){
+    if(e.key==='ArrowDown'){e.preventDefault();palSel=Math.min(list.length-1,palSel+1);renderPal()}
+    else if(e.key==='ArrowUp'){e.preventDefault();palSel=Math.max(0,palSel-1);renderPal()}
+    else if(e.key==='Enter'){e.preventDefault();var it=list[palSel];closePal();if(it)it.run()}};
+}
+$('#palIn').addEventListener('input',function(){palSel=0;renderPal()});
+$('#pal').addEventListener('mousedown',function(e){if(e.target===this)closePal()});
+$('#btnCmd').onclick=openPal;
+
+/* ---------- AI assistant ---------- */
+var turns=[],aiCtl=null,busy=false;
+var SUGS=['Quelle période pour distribuer à Rodez et Millau ?','Comment présenter ce devis à un client ?','Que mettre dans une attestation RSE crédible ?'];
+function aiContext(){var q=S.quote,r=quote(q);return 'Devis en cours : '+(q.client?q.client+', ':'')+r.sel.map(function(c){return c.name}).join(', ')+' ; '+nf.format(q.qty)+' exemplaires ; '+r.f.label+' ; '+r.m.label+' ; papier '+r.p.label+' ; délai '+r.d.label.toLowerCase()+' ; total '+fE(r.ht)+' HT ; CO2 évité estimé '+r.co2+' kg.'}
+function openAi(){
+  if(!sample)return;lastFocus=document.activeElement;$('#ai').hidden=false;
+  if(!$('#chat').children.length){addMsg('a','Bonjour. Je peux vous aider sur le ciblage en Aveyron, la période de distribution, le devis en cours ou l’argumentaire RSE.')}
+  $('#sugs').innerHTML=SUGS.map(function(s){return '<button type="button">'+esc(s)+'</button>'}).join('');
+  setTimeout(function(){$('#aiIn').focus()},0);
+}
+function closeAi(){if(aiCtl)aiCtl.abort();$('#ai').hidden=true;if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+function addMsg(role,txt){var d=document.createElement('div');d.className='msg '+role;d.textContent=txt;$('#chat').appendChild(d);$('#chat').scrollTop=1e6;return d}
+function ask(txt){
+  if(!sample||busy||!txt.trim())return;
+  busy=true;$('#sugs').innerHTML='';addMsg('u',txt);turns.push({role:'user',content:txt});
+  var bub=addMsg('a','Réflexion en cours…');aiCtl=new AbortController();
+  var rules='Tu es l’assistant de CDIFFUSION, spécialiste de l’impression et de la distribution éco-responsable (vélo-cargo électrique, papier FSC) en Aveyron : Rodez, Millau, Villefranche-de-Rouergue, Espalion, Decazeville, Saint-Affrique. Réponds en français, de façon synthétique et professionnelle, pour un client B2B. Donne au maximum 3 conseils concrets, en texte brut avec des tirets, sans mise en forme markdown, en moins de 170 mots. Si tu n’es pas sûr d’un fait local ou d’un chiffre, dis-le au lieu d’inventer. Contexte de l’application : '+aiContext();
+  var input=[{role:'user',content:rules}].concat(turns.slice(-8));
+  $('#aiSend').disabled=true;
+  sample(input,{cache:false,modelTier:'quick',signal:aiCtl.signal,onText:function(u){bub.textContent=u.text;$('#chat').scrollTop=1e6}}).then(function(r){turns.push({role:'assistant',content:r.text})},function(e){
+    if(e&&e.text){bub.textContent=e.text}else bub.remove();
+    if(e&&e.code==='cancelled'){turns.pop();return}
+    var m={not_granted:'L’accès à Claude n’a pas été autorisé pour cette page.',rate_limited:'Trop de demandes. Réessayez dans un instant.',sampling_disabled:'L’assistant n’est pas disponible pour ce compte.'}[e&&e.code]||'La réponse a été interrompue. Vous pouvez reposer la question.';
+    turns.pop();addMsg('e',m);
+  }).then(function(){busy=false;aiCtl=null;$('#aiSend').disabled=false;$('#aiIn').focus()});
+}
+$('#btnAi').onclick=openAi;$('#aiClose').onclick=closeAi;
+$('#ai').addEventListener('mousedown',function(e){if(e.target===this)closeAi()});
+$('#aiForm').addEventListener('submit',function(e){e.preventDefault();var v=$('#aiIn').value;$('#aiIn').value='';ask(v)});
+$('#aiIn').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#aiForm').requestSubmit?$('#aiForm').requestSubmit():$('#aiForm').dispatchEvent(new Event('submit',{cancelable:true}))}});
+$('#sugs').addEventListener('click',function(e){var b=e.target.closest('button');if(b)ask(b.textContent)});
+
+/* ---------- global ---------- */
+$('#btnTheme').onclick=cycleTheme;
+$('#kbd').textContent=/Mac|iPhone|iPad/.test(navigator.platform||navigator.userAgent)?'⌘K':'Ctrl K';
+document.addEventListener('keydown',function(e){
+  if((e.metaKey||e.ctrlKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();$('#pal').hidden?openPal():closePal()}
+  else if(e.key==='Escape'){if(!$('#pal').hidden)closePal();else if(!$('#ai').hidden)closeAi()}
+});
+buildNav();buildPalette();applyTheme();
+if(window.matchMedia)matchMedia('(prefers-color-scheme: dark)').addEventListener&&matchMedia('(prefers-color-scheme: dark)').addEventListener('change',applyTheme);
+var h0=(location.hash||'').slice(1);
+go(TABS.some(function(t){return t.id===h0})?h0:'apercu',true);
+})();
+</script>
+
+</body></html>
